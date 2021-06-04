@@ -1,0 +1,11 @@
+load taxonomy.maude
+
+fmod FILTERTERM is
+    including TOPOLOGY .
+    including BOOL .
+
+    sort FilterTerm .
+    subsort Elem < FilterTerm .
+    op _:\:_ : Elem FilterTerm -> FilterTerm [ctor] .
+
+endfm

@@ -1,0 +1,42 @@
+load taxonomy.maude
+
+fmod EXAMPLETOPOLOGY is
+  including TOPOLOGY .
+
+  ops a b c d e f g h : -> Elem .
+  ops es es1 es2 : -> ElemSet .
+  ops no1 no2 : -> Node .
+  ops ns ns1 ns2 ns3 : -> NodeSet .
+  ops t1 t2 : -> Topology .
+
+  eq es = a , b , c , d , e , f , g .
+  eq es2 = h , a , b , c , d , e , f , g .
+  eq es1 = a , c .
+  eq no1 = es1 <c b .
+  eq no2 = (c , d) <c g .
+  eq ns1 = no1 , no2 .
+  eq ns2 = (c , d) <c e , (a , c) <c b .
+  eq ns = (b , c) <c a , (d , e) <c c , (f , g) <c d .
+  eq ns3 = (b , d, f) <c a , (d , e) <c c , (f , g) <c d , ( c ) <c a .
+  eq t1 = tau(es , a , ns) .
+  eq t2 = tau(es , a , ns3) .
+endfm
+
+*** red reachability(es, a, ns2) .
+*** red findParent (d, ns) .   ---> c
+*** red findParent (h, ns) .   ---> eRROr
+*** red existPath(a,g,ns) .
+*** red reachability(es2 , a , ns) .   ---> false
+*** red reachability(es , a , ns) .   ---> true
+*** red manyParents(h, ns) .  ---> 0
+*** red manyParents(d, ns) .  ---> 1
+*** red manyParents(d, ns3) .  ---> 2
+*** red singleParent(es,ns) . ----> true
+*** red singleParent(es,ns3) . ----> false
+*** red singleNode(es,ns) . ----> true
+*** red singleNode(es,ns3) . ----> false
+*** red wfTopology(t1) . ----> true
+*** red wfTopology(t2) . ----> false
+*** red f :<: a with t1 .  ----> true
+*** red f :===: g with t1 .
+*** red f :<=: g with t1 .

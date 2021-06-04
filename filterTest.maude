@@ -1,0 +1,27 @@
+load filter.maude
+
+fmod EXAMPLEFILTERTERM is
+  including FILTERTERM .
+
+  ops a b c d e f g h : -> Elem .
+  ops es es1 es2 : -> ElemSet .
+  ops no1 no2 : -> Node .
+  ops ns ns1 ns2 ns3 : -> NodeSet .
+  ops t1 t2 : -> Topology .
+
+  eq es = a , b , c , d , e , f , g .
+  eq es2 = h , a , b , c , d , e , f , g .
+  eq es1 = a , c .
+  eq no1 = es1 <c b .
+  eq no2 = (c , d) <c g .
+  eq ns1 = no1 , no2 .
+  eq ns2 = (c , d) <c e , (a , c) <c b .
+  eq ns = (b , c) <c a , (d , e) <c c , (f , g) <c d .
+  eq ns3 = (b , d, f) <c a , (d , e) <c c , (f , g) <c d , ( c ) <c a .
+  eq t1 = tau(es , a , ns) .
+  eq t2 = tau(es , a , ns3) .
+
+
+  op a :/: b : -> FilterTerm .
+  op a :/: b :/: d : -> FilterTerm .
+endfm
