@@ -14,11 +14,6 @@ fmod NODE is
     op _</c_ : Elem Elem -> Node [ctor] .
 endfm
 
-view Node from TRIV to NODE is
-    sort Elt to Node .
-endv
-
-
 **** I defined a new NODELIST because cmb/mb did not like assoc in the constructor .
 fmod NODELIST is
     including NODE .
@@ -45,12 +40,13 @@ fmod TREE is
 
 
    cmb ndl (el1 <c el2) : Tree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
+   mb root(el) : Tree .
 
    cmb ndl (el1 <c el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
    cmb ndl (el1 </c el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
    cmb ndl (el1 </c el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
 
-   mb root(el) : Tree .
+
 
 endfm
 
