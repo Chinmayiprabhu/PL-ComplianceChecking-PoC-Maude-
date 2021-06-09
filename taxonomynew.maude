@@ -12,48 +12,53 @@ fmod NODE is
     including ELEM .
     sort Node .
     op _<c_ : Elem Elem -> Node [ctor] .
-    op root : Elem -> Node [ctor] .
 endfm
 
 view Node from TRIV to NODE is
     sort Elt to Node .
 endv
 
+
+**** I defined a new NODELIST because cmb/mb did not like assoc in the constructor .
 fmod NODELIST is
     including NODE .
-    including LIST{Node} .
+    sort  NeNodeList .
 
-    sorts NodeLIST NeNodeLIST .
-    subsort List{Node} < NodeLIST .
-    subsort NeList{Node} < NeNodeLIST .
+    op root : Elem -> NeNodeList [ctor] .
+    op __ : NeNodeList Node -> NeNodeList [ctor] .
+
 endfm
 
-fmod Tree is
+fmod TREE is
+    including NODELIST .
+    sort Tree .
+    subsort   Tree < NeNodeList .
+    vars el el1 el2 : Elem .
+    var nd : Node .
+    var ndl : NeNodeList .
+
+    op _in_ : Elem NeNodeList -> Bool .
+    eq el in (root(el)) = true .
+    eq el in (ndl (el1 <c el2) )  = (el == el2) or (el in ndl) .
+    eq el in ndl = false [owise] .
+
+
+   cmb ndl (el1 <c el2) : Tree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
+   mb root(el) : Tree .
+
+endfm
+
+fmod TEST is
  including NODELIST .
- vars el el1 el2 : Elem .
- var nd : Node .
- var ndl : NodeLIST .
- var nendl : NeNodeLIST .
-
- op _in_ : Elem NodeLIST -> Bool .
- eq el in (root(el)) = true .
- eq el in (ndl (el1 <c el2) )  = (el == el2) or (el in ndl) .
- eq el in ndl = false [owise] .
-
- ****op  _disjoint_ : ElemSet NodeLIST -> Bool .
- ***eq  emp disjoint P = true .
-***eq  (A, S) disjoint P = not (A in P) and S disjoint P .
-
-
- endfm
-
-fmod Test is
- including NODELIST .
- including Tree .
+ including TREE .
 
 ops a b c d e : -> Elem .
 
-op nodelist : -> NodeLIST .
+op nodelist : -> NeNodeList .
 eq nodelist = root(a) (a <c b)  (a <c c) (c <c d) .
 
 endfm
+
+*** red root(a) (a <c b)  (c <c d) . ---> NodeList
+**** red  root(a) . ----> Tree
+*** root(a) (a <c b)  (a <c c) (c <c d) . ----> Tree
