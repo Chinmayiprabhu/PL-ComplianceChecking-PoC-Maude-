@@ -1,0 +1,95 @@
+load prelude.maude
+
+fmod ELEM is
+    including QID .
+    sort Elem .
+    subsort Qid < Elem .
+    op eRROr : -> Elem .
+    op NoElem : -> Elem .
+endfm
+
+view Elem from TRIV to ELEM is
+    sort Elt to Elem .
+endv
+
+fmod ELEMSET is
+    including ELEM .
+    including SET{Elem} .
+
+    sorts ElemSet NeElemSet .
+    subsort Set{Elem} < ElemSet .
+    subsort NeSet{Elem} < NeElemSet .
+endfm
+
+fmod NODE is
+    including ELEMSET .
+    sort Node .
+    op _<c_ : Elem NeElemSet -> Node [ctor] .
+    op root : Elem -> Node [ctor] . 
+
+    var el : Elem .
+    var els : ElemSet .
+
+
+    op parent : Node -> Elem .
+    eq parent (el <c els) = el .
+    eq parent (root(el)) = NoElem .
+
+    op children : Node -> ElemSet .
+    eq children (el <c els ) = els .
+    eq children (root(el)) = NoElem .
+endfm
+
+view Node from TRIV to NODE is
+    sort Elt to Node .
+endv 
+
+fmod NODELIST is
+    including NODE .
+    including LIST{Node} .
+
+    sorts NodeLIST NeNodeLIST .
+    subsort List{Node} < NodeLIST .
+    subsort NeList{Node} < NeNodeLIST .
+endfm
+
+fmod Tree is 
+ including NODELIST .
+ vars el el1 : Elem .
+ var els : ElemSet .
+ var nd : Node . 
+ var ndl : NodeLIST .
+ var nendl : NeNodeLIST .
+ op _in_ : Elem NodeLIST -> Bool .
+
+ ceq el in (root(el1) ndl) = true if el1 in ndl .
+ ceq el in (root(el1) ndl )= true if el == el1 .
+ eq el in ((el1 <c els) ndl)  = (el in els) or (el in ndl) . 
+ eq el in ndl = false [owise] .
+
+ endfm 
+
+fmod Test is
+ including NODELIST .
+ including Tree .
+
+ops a b c d : -> Elem . 
+
+ops nd1 nd2 nd3 : -> Node .
+ops nodelist1 : -> NodeLIST .
+
+eq nodelist1 = nil .
+
+
+eq nd1 = root(a) .
+eq nd2 =  a <c (b , c )  . 
+eq nd3 = c <c (d) .
+
+
+op nodelist : -> NodeLIST .
+eq nodelist = nd1 nd2 nd3 . 
+
+endfm
+
+
+
