@@ -5,7 +5,6 @@ fmod ELEM is
     sort Elem .
     subsort Qid < Elem .
     op eRROr : -> Elem .
-    op NoElem : -> Elem .
 endfm
 
 fmod NODE is
