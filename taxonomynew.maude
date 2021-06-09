@@ -12,6 +12,7 @@ fmod NODE is
     including ELEM .
     sort Node .
     op _<c_ : Elem Elem -> Node [ctor] .
+    op _</c_ : Elem Elem -> Node [ctor] .
 endfm
 
 view Node from TRIV to NODE is
@@ -31,8 +32,8 @@ endfm
 
 fmod TREE is
     including NODELIST .
-    sort Tree .
-    subsort   Tree < NeNodeList .
+    sort BrTree Tree .
+    subsort   Tree < BrTree < NeNodeList .
     vars el el1 el2 : Elem .
     var nd : Node .
     var ndl : NeNodeList .
@@ -40,10 +41,16 @@ fmod TREE is
     op _in_ : Elem NeNodeList -> Bool .
     eq el in (root(el)) = true .
     eq el in (ndl (el1 <c el2) )  = (el == el2) or (el in ndl) .
+    eq el in (ndl (el1 </c el2) )  = (el == el2) or (el in ndl) .
     eq el in ndl = false [owise] .
 
 
    cmb ndl (el1 <c el2) : Tree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
+
+   cmb ndl (el1 <c el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
+   cmb ndl (el1 </c el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
+   cmb ndl (el1 </c el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
+
    mb root(el) : Tree .
 
 endfm
@@ -59,6 +66,8 @@ eq nodelist = root(a) (a <c b)  (a <c c) (c <c d) .
 
 endfm
 
-*** red root(a) (a <c b)  (c <c d) . ---> NodeList
+*** red root(a) (a <c b)  (c <c d) . ---> NeNodeList
 **** red  root(a) . ----> Tree
 *** root(a) (a <c b)  (a <c c) (c <c d) . ----> Tree
+*** red root(a) (a <c b)  (c </c d) . ---> NeNodeList
+*** red root(a) (a </c b)  (a </c c) (c <c d) . ---> BrTree
