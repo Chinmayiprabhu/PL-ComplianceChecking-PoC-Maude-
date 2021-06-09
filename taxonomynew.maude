@@ -3,15 +3,28 @@ load prelude.maude
 fmod ELEM is
     including QID .
     sort Elem .
-    subsort Qid < Elem .
     op eRROr : -> Elem .
+    subsort Qid < Elem .
+endfm
+
+view Elem from TRIV to ELEM is
+    sort Elt to Elem .
+endv
+
+fmod ELEMSET is
+    including ELEM .
+    including SET{Elem} .
+
+    sorts ElemSet NeElemSet .
+    subsort Set{Elem} < ElemSet .
+    subsort NeSet{Elem} < NeElemSet .
 endfm
 
 fmod NODE is
     including ELEM .
     sort Node .
-    op _<c_ : Elem Elem -> Node [ctor] .
-    op _</c_ : Elem Elem -> Node [ctor] .
+    op _-->_ : Elem Elem -> Node [ctor] .
+    op _-/->_ : Elem Elem -> Node [ctor] .
 endfm
 
 **** I defined a new NODELIST because cmb/mb did not like assoc in the constructor .
@@ -34,35 +47,120 @@ fmod TREE is
 
     op _in_ : Elem NeNodeList -> Bool .
     eq el in (root(el)) = true .
-    eq el in (ndl (el1 <c el2) )  = (el == el2) or (el in ndl) .
-    eq el in (ndl (el1 </c el2) )  = (el == el2) or (el in ndl) .
+    eq el in (ndl (el1 --> el2) )  = (el == el2) or (el in ndl) .
+    eq el in (ndl (el1 -/-> el2) )  = (el == el2) or (el in ndl) .
     eq el in ndl = false [owise] .
 
 
-   cmb ndl (el1 <c el2) : Tree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
+   cmb ndl (el1 --> el2) : Tree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
    mb root(el) : Tree .
 
-   cmb ndl (el1 <c el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
-   cmb ndl (el1 </c el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
-   cmb ndl (el1 </c el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
+   cmb ndl (el1 --> el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
+   cmb ndl (el1 -/-> el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
+   cmb ndl (el1 -/-> el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
+
+   op existPath : Elem Elem NeNodeList -> Bool .
+   eq existPath(el1 , el2 , ndl (el1 --> el2) ) = true .
+   eq existPath(el1 , el2 , ndl (el --> el2) ) = (el == el1) or existPath(el1 , el , ndl) .
+   eq existPath(el1 , el2 , ndl (el --> el2) ) = (el =/= el1) and existPath(el1 , el2, ndl) .
+   eq existPath(el1 , el2 , ndl nd ) =  existPath(el1 , el2, ndl) .
+   eq existPath(el1 , el2 , ndl) = false [owise] .
+endfm
+
+view Tree from TRIV to TREE is
+    sort Elt to Tree .
+endv
+
+fmod TREESET is
+    including TREE .
+    including SET{Tree} .
+
+    sorts TreeSet NeTreeSet .
+    subsort Set{Tree} < TreeSet .
+    subsort NeSet{Tree} < NeTreeSet .
+endfm
 
 
+
+fmod FILTERTREE is
+  including TREE .
+  including ELEMSET .
+  including TREESET .
+  sort FamilyTree .
+
+  op <_:_> : BrTree TreeSet -> FamilyTree [ctor] .
+
+  vars el el1 el2 : Elem .
+  var els : ElemSet .
+  var nd : Node .
+  var t : Tree .
+  var bt : BrTree .
+  var ndl : NeNodeList .
+
+  ***(
+  given a node which is a subtree T, it return a pair where the first part
+  is the original tree T and the second part is the branch from the given element .
+  )
+  op _with_ : Elem Tree -> FamilyTree .
+  eq el with t = < t : branch(el,t) > .
+
+  ***(
+  given a node which is a subtree T, it return a pair where the first part
+  is the broken tree from T and the second part is the set of branches
+  that were broken .
+  )
+  op (_:\:_)with_  : Elem  NeElemSet Tree -> FamilyTree .
+  eq (el :\: els) with t = < break(els, branch(el , t)) : branch(els , branch(el , t)) > .
+
+  **** given a node it returns a branch from such node .
+  op branch : Elem Tree -> Tree .
+  eq branch(el , root(el))  = root(el) .
+  eq branch(el , ndl (el1 --> el))   = root(el) .
+  eq branch(el , ndl (el --> el2))   = branch(el , ndl)  (el --> el2)  .
+  ceq branch(el , ndl (el1 --> el2)) = branch(el , ndl)  (el1 --> el2) if existPath( el, el1, ndl (el1 --> el2)) .
+  ceq branch(el , ndl (el1 --> el2))  = branch(el , ndl)  if existPath( el, el1, ndl (el1 --> el2)) == false .
+  eq branch (el , ndl) = root(eRROr) [owise] .
+
+  *** overload the branch to work over sets of elements
+  op branch : ElemSet Tree -> TreeSet .
+  eq branch(empty , t) = empty .
+  eq branch((els, el) , t) =  branch(els , t) , branch(el , t)  .
+
+  *** break one of the constructors so that the tree becomes a broken tree
+  op break : Elem Tree -> BrTree .
+  eq break(el, root(el)) = root(el) .
+  eq break(el, ndl (el1 --> el))   = ndl (el1 -/-> el) .
+  ceq break (el, ndl (el1 --> el2)) = break(el, ndl) (el1 --> el2) if el =/= el2 .
+
+  *** overload the break function to work over sets
+  op break : ElemSet BrTree -> BrTree .
+  eq break(empty, bt) = bt .
+  eq break ((els,el), bt) = break(els, break(el,bt)) .
 
 endfm
 
 fmod TEST is
- including NODELIST .
- including TREE .
+  including FILTERTREE .
+  ops a b c d e e f g h i : -> Elem .
 
-ops a b c d e : -> Elem .
-
-op nodelist : -> NeNodeList .
-eq nodelist = root(a) (a <c b)  (a <c c) (c <c d) .
+  op tr : -> Tree .
+  eq tr = root(a) (a --> b)  (a --> c) (c --> d) (c --> e) (d --> f) (d --> g) (e --> h).
 
 endfm
 
-*** red root(a) (a <c b)  (c <c d) . ---> NeNodeList
+*** red root(a) (a --> b)  (c --> d) . ---> NeNodeList
 **** red  root(a) . ----> Tree
-*** root(a) (a <c b)  (a <c c) (c <c d) . ----> Tree
-*** red root(a) (a <c b)  (c </c d) . ---> NeNodeList
-*** red root(a) (a </c b)  (a </c c) (c <c d) . ---> BrTree
+*** red root(a) (a --> b)  (a --> c) (c --> d) . ----> Tree
+*** red root(a) (a --> b)  (c --> d) . ---> NeNodeList
+*** red root(a) (a --> b)  (a -/-> c) (c --> d) . ---> BrTree
+**** red (root(a) (a --> b)  (a --> c) (c --> d)) , (root(a) (a --> b)  (a --> c)) . ---> NeTreeSet
+
+**** red  existPath(a,d,tr) .
+**** red branch(c , tr) .
+**** red branch((c,d) , tr) .
+**** red break(d, tr) .
+**** red break((d,h), tr) .
+**** red (a :\:  d,h) with tr .
+**** red d with tr .
+**** red (c :\: f,h) with tr .
+**** red (a :\: c) with tr .
