@@ -8,41 +8,16 @@ fmod ELEM is
     op NoElem : -> Elem .
 endfm
 
-view Elem from TRIV to ELEM is
-    sort Elt to Elem .
-endv
-
-fmod ELEMSET is
-    including ELEM .
-    including SET{Elem} .
-
-    sorts ElemSet NeElemSet .
-    subsort Set{Elem} < ElemSet .
-    subsort NeSet{Elem} < NeElemSet .
-endfm
-
 fmod NODE is
-    including ELEMSET .
+    including ELEM .
     sort Node .
-    op _<c_ : Elem NeElemSet -> Node [ctor] .
-    op root : Elem -> Node [ctor] . 
-
-    var el : Elem .
-    var els : ElemSet .
-
-
-    op parent : Node -> Elem .
-    eq parent (el <c els) = el .
-    eq parent (root(el)) = NoElem .
-
-    op children : Node -> ElemSet .
-    eq children (el <c els ) = els .
-    eq children (root(el)) = NoElem .
+    op _<c_ : Elem Elem -> Node [ctor] .
+    op root : Elem -> Node [ctor] .
 endfm
 
 view Node from TRIV to NODE is
     sort Elt to Node .
-endv 
+endv
 
 fmod NODELIST is
     including NODE .
@@ -53,43 +28,32 @@ fmod NODELIST is
     subsort NeList{Node} < NeNodeLIST .
 endfm
 
-fmod Tree is 
+fmod Tree is
  including NODELIST .
- vars el el1 : Elem .
- var els : ElemSet .
- var nd : Node . 
+ vars el el1 el2 : Elem .
+ var nd : Node .
  var ndl : NodeLIST .
  var nendl : NeNodeLIST .
- op _in_ : Elem NodeLIST -> Bool .
 
- ceq el in (root(el1) ndl) = true if el1 in ndl .
- ceq el in (root(el1) ndl )= true if el == el1 .
- eq el in ((el1 <c els) ndl)  = (el in els) or (el in ndl) . 
+ op _in_ : Elem NodeLIST -> Bool .
+ eq el in (root(el)) = true .
+ eq el in (ndl (el1 <c el2) )  = (el == el2) or (el in ndl) .
  eq el in ndl = false [owise] .
 
- endfm 
+ ****op  _disjoint_ : ElemSet NodeLIST -> Bool .
+ ***eq  emp disjoint P = true .
+***eq  (A, S) disjoint P = not (A in P) and S disjoint P .
+
+
+ endfm
 
 fmod Test is
  including NODELIST .
  including Tree .
 
-ops a b c d : -> Elem . 
-
-ops nd1 nd2 nd3 : -> Node .
-ops nodelist1 : -> NodeLIST .
-
-eq nodelist1 = nil .
-
-
-eq nd1 = root(a) .
-eq nd2 =  a <c (b , c )  . 
-eq nd3 = c <c (d) .
-
+ops a b c d e : -> Elem .
 
 op nodelist : -> NodeLIST .
-eq nodelist = nd1 nd2 nd3 . 
+eq nodelist = root(a) (a <c b)  (a <c c) (c <c d) .
 
 endfm
-
-
-
