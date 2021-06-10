@@ -88,7 +88,7 @@ fmod FILTERTREE is
   including TREESET .
   sort FamilyTree .
 
-  op <_:_> : BrTree TreeSet -> FamilyTree [ctor] .
+  op <_:_> : TreeSet Elem -> FamilyTree [ctor] .
 
   vars el el1 el2 : Elem .
   var els : ElemSet .
@@ -102,7 +102,7 @@ fmod FILTERTREE is
   is the original tree T and the second part is the branch from the given element .
   )
   op _with_ : Elem Tree -> FamilyTree .
-  eq el with t = < t : branch(el,t) > .
+  eq el with t = <  branch(el,t) : el > .
 
   ***(
   given a node which is a subtree T, it return a pair where the first part
@@ -110,7 +110,7 @@ fmod FILTERTREE is
   that were broken .
   )
   op (_:\:_)with_  : Elem  NeElemSet Tree -> FamilyTree .
-  eq (el :\: els) with t = < break(els, branch(el , t)) : branch(els , branch(el , t)) > .
+  eq (el :\: els) with t = < break(els,t) : el > .
 
   **** given a node it returns a branch from such node .
   op branch : Elem Tree -> Tree .
