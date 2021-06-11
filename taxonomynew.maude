@@ -22,9 +22,11 @@ endfm
 
 fmod NODE is
     including ELEM .
+    including ELEMSET .
     sort Node .
     op _-->_ : Elem Elem -> Node [ctor] .
     op _-/->_ : Elem Elem -> Node [ctor] .
+
 endfm
 
 **** I defined a new NODELIST because cmb/mb did not like assoc in the constructor .
@@ -42,8 +44,13 @@ fmod TREE is
     sort BrTree Tree .
     subsort   Tree < BrTree < NeNodeList .
     vars el el1 el2 : Elem .
+    var els : ElemSet .
     var nd : Node .
     var ndl : NeNodeList .
+
+    ***op childof : Elem  -> ElemSet [ctor] .
+    ***eq childof el = els .
+
 
     op _in_ : Elem NeNodeList -> Bool .
     eq el in (root(el)) = true .
@@ -65,6 +72,24 @@ fmod TREE is
    eq existPath(el1 , el2 , ndl (el --> el2) ) = (el =/= el1) and existPath(el1 , el2, ndl) .
    eq existPath(el1 , el2 , ndl nd ) =  existPath(el1 , el2, ndl) .
    eq existPath(el1 , el2 , ndl) = false [owise] .
+
+   *** The Parent function
+   op  parent : Elem NeNodeList -> Elem .
+
+   eq  parent(el, root(el1)) = eRROr .
+   ceq parent(el, ndl ( el1 --> el2 ))  = el1 if (el == el2) .
+   ceq parent(el, ndl ( el1 --> el2 ))  = parent(el,ndl)  if (el =/= el2) .
+
+   *** The Parent function
+   op  Child : Elem NeNodeList -> ElemSet .
+
+
+   *** eq  Child(el  , root(el1)) = eRROr .
+    ceq Child (el, ndl ( el1 --> el2 ))  = el2  if( el == el1 ) and  (not (el in ndl)) .
+    ceq Child (el, ndl ( el1 --> el2 ))  = el2 if( el == el1 ) and  ((el in ndl)) .
+
+
+
 endfm
 
 view Tree from TRIV to TREE is
@@ -104,6 +129,11 @@ fmod FILTERTREE is
   op _with_ : Elem Tree -> FamilyTree .
   eq el with t = <  branch(el,t) : el > .
 
+  ***op childof : Elem NeNodeList -> ElemSet .
+  ***eq childof ( el , ndl(el1 --> el2)) = el1 .
+  ***ceq childof (el , els) = els if (el --> el1) and (el --> el1).
+
+
   ***(
   given a node which is a subtree T, it return a pair where the first part
   is the broken tree from T and the second part is the set of branches
@@ -111,6 +141,9 @@ fmod FILTERTREE is
   )
   op (_:\:_)with_  : Elem  NeElemSet Tree -> FamilyTree .
   eq (el :\: els) with t = < break(els,t) : el > .
+  ***ceq (el :\: els) with t = < break((els,el),t) : el >  if els == childof(el).
+
+
 
   **** given a node it returns a branch from such node .
   op branch : Elem Tree -> Tree .
@@ -141,26 +174,33 @@ endfm
 
 fmod TEST is
   including FILTERTREE .
-  ops a b c d e e f g h i : -> Elem .
+  ops Hlthcr Admin Hlthwrkr marketing Billing Doc HAss Phar Spcl GP Nur LabAss Gynac DT cleaner : -> Elem .
 
   op tr : -> Tree .
-  eq tr = root(a) (a --> b)  (a --> c) (c --> d) (c --> e) (d --> f) (d --> g) (e --> h).
+  eq tr = root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) (Admin --> Billing)
+  (Hlthwrkr --> Doc) (Hlthwrkr --> Phar)(Hlthwrkr --> HAss) (Doc --> Spcl) ( Doc --> GP ) (HAss --> Nur)
+  (HAss --> LabAss) (Spcl --> Gynac) (Spcl --> DT) .
 
 endfm
-
-*** red root(a) (a --> b)  (c --> d) . ---> NeNodeList
-**** red  root(a) . ----> Tree
-*** red root(a) (a --> b)  (a --> c) (c --> d) . ----> Tree
-*** red root(a) (a --> b)  (c --> d) . ---> NeNodeList
-*** red root(a) (a --> b)  (a -/-> c) (c --> d) . ---> BrTree
-**** red (root(a) (a --> b)  (a --> c) (c --> d)) , (root(a) (a --> b)  (a --> c)) . ---> NeTreeSet
-
+*** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) . ---> Tree
+*** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin -/-> marketing) . ---> BrTree
+*** red root(Hlthcr) (Hlthcr --> Admin)  (Doc -/-> Spcl) . ---> NeNodeList
+*** red (root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin -/-> marketing)) , (root(Hlthcr) (Hlthcr --> Admin)  (Doc -/-> Spcl)) . -->  [TreeSet,NeTreeSet,NeNodeList]
+*** red break ( (Doc, HAss) , tr ) .
+*** red existPath ( Admin , DT , tr ) . --> false
+*** red existPath(Hlthcr ,  LabAss , tr ) . --> True
 **** red  existPath(a,d,tr) .
-**** red branch(c , tr) .
-**** red branch((c,d) , tr) .
-**** red break(d, tr) .
-**** red break((d,h), tr) .
-**** red (a :\:  d,h) with tr .
-**** red d with tr .
-**** red (c :\: f,h) with tr .
-**** red (a :\: c) with tr .
+*** red branch ( Admin , tr ) .
+*** red branch ( (marketing,Doc)  , tr ) .-->NeSet{Tree}: root(marketing), root(Doc) Doc --> Spcl Doc --> GP Spcl --> Gynac Spcl --> DT
+*** red break ( Doc , tr ) .--> BrTree: root(Hlthcr) Hlthcr --> Admin Hlthcr --> Hlthwrkr Admin --> marketing Admin --> Billing Hlthwrkr -/->
+    *** Doc Hlthwrkr --> Phar Hlthwrkr --> HAss Doc --> Spcl Doc --> GP HAss --> Nur HAss --> LabAss Spcl --> Gynac Spcl
+    *** --> DT
+*** red break ( ( Admin , Spcl ) , tr ) . --> BrTree: root(Hlthcr) Hlthcr -/-> Admin Hlthcr --> Hlthwrkr Admin --> marketing Admin --> Billing Hlthwrkr -->
+    *** Doc Hlthwrkr --> Phar Hlthwrkr --> HAss Doc -/-> Spcl Doc --> GP HAss --> Nur HAss --> LabAss Spcl --> Gynac Spcl --> DT
+
+*** red ( Hlthwrkr :\: LabAss ) with tr .
+*** red ( Hlthwrkr :\: LabAss, Billing ) with tr . --> [FamilyTree]: < root(Hlthcr) Hlthcr --> Admin Hlthcr --> Hlthwrkr Admin --> marketing Admin -/-> Billing
+        *** Hlthwrkr --> Doc Hlthwrkr --> Phar Hlthwrkr --> HAss Doc --> Spcl Doc --> GP HAss --> Nur HAss -/-> LabAss Spcl -->
+        *** Gynac Spcl --> DT : Hlthwrkr >
+
+*** red Spcl with tr . --> FamilyTree: < root(Spcl) Spcl --> Gynac Spcl --> DT : Spcl >
