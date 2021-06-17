@@ -48,9 +48,6 @@ fmod TREE is
     var nd : Node .
     var ndl : NeNodeList .
 
-    ***op childof : Elem  -> ElemSet [ctor] .
-    ***eq childof el = els .
-
 
     op _in_ : Elem NeNodeList -> Bool .
     eq el in (root(el)) = true .
@@ -66,12 +63,17 @@ fmod TREE is
    cmb ndl (el1 -/-> el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
    cmb ndl (el1 -/-> el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
 
+
+
+
    op existPath : Elem Elem NeNodeList -> Bool .
    eq existPath(el1 , el2 , ndl (el1 --> el2) ) = true .
    eq existPath(el1 , el2 , ndl (el --> el2) ) = (el == el1) or existPath(el1 , el , ndl) .
    eq existPath(el1 , el2 , ndl (el --> el2) ) = (el =/= el1) and existPath(el1 , el2, ndl) .
    eq existPath(el1 , el2 , ndl nd ) =  existPath(el1 , el2, ndl) .
    eq existPath(el1 , el2 , ndl) = false [owise] .
+
+
 
    *** The Parent function
    op  parent : Elem NeNodeList -> Elem .
@@ -80,14 +82,11 @@ fmod TREE is
    ceq parent(el, ndl ( el1 --> el2 ))  = el1 if (el == el2) .
    ceq parent(el, ndl ( el1 --> el2 ))  = parent(el,ndl)  if (el =/= el2) .
 
-   *** The Parent function
-   op  Child : Elem NeNodeList -> ElemSet .
-
-
-   *** eq  Child(el  , root(el1)) = eRROr .
-    ceq Child (el, ndl ( el1 --> el2 ))  = el2  if( el == el1 ) and  (not (el in ndl)) .
-    ceq Child (el, ndl ( el1 --> el2 ))  = el2 if( el == el1 ) and  ((el in ndl)) .
-
+   *** The childof function
+   op  childof : Elem NeNodeList -> ElemSet .
+   ceq childof(el  , ndl(el1 --> el2 )) = el2 if ( el == el1 ) and not ( el1 in ndl) .
+   ceq childof(el  , ndl(el1 --> el2 )) = el2 childof(el  , ndl(el1 --> el2 ) if ( el == el1 ) and ( el1 in ndl) .
+   ceq childof(el  , ndl(el1 --> el2 )) = childof( ndl ( el --> el1)) if ( el =/= el1) and ( el1 in ndl) .
 
 
 endfm
@@ -112,26 +111,29 @@ fmod FILTERTREE is
   including ELEMSET .
   including TREESET .
   sort FamilyTree .
+  *** sort leavesSet .
 
   op <_:_> : TreeSet Elem -> FamilyTree [ctor] .
 
+  *** op <_;_> : TreeSet ElemSet -> leavesSet [ctor] .
+
   vars el el1 el2 : Elem .
-  var els : ElemSet .
+  var els els1  : ElemSet .
+  var neels : NeElemSet .
   var nd : Node .
   var t : Tree .
   var bt : BrTree .
   var ndl : NeNodeList .
 
-  ***(
+
+
+ ***(
   given a node which is a subtree T, it return a pair where the first part
   is the original tree T and the second part is the branch from the given element .
   )
   op _with_ : Elem Tree -> FamilyTree .
   eq el with t = <  branch(el,t) : el > .
 
-  ***op childof : Elem NeNodeList -> ElemSet .
-  ***eq childof ( el , ndl(el1 --> el2)) = el1 .
-  ***ceq childof (el , els) = els if (el --> el1) and (el --> el1).
 
 
   ***(
@@ -141,9 +143,6 @@ fmod FILTERTREE is
   )
   op (_:\:_)with_  : Elem  NeElemSet Tree -> FamilyTree .
   eq (el :\: els) with t = < break(els,t) : el > .
-  ***ceq (el :\: els) with t = < break((els,el),t) : el >  if els == childof(el).
-
-
 
   **** given a node it returns a branch from such node .
   op branch : Elem Tree -> Tree .
@@ -153,6 +152,15 @@ fmod FILTERTREE is
   ceq branch(el , ndl (el1 --> el2)) = branch(el , ndl)  (el1 --> el2) if existPath( el, el1, ndl (el1 --> el2)) .
   ceq branch(el , ndl (el1 --> el2))  = branch(el , ndl)  if existPath( el, el1, ndl (el1 --> el2)) == false .
   eq branch (el , ndl) = root(eRROr) [owise] .
+
+ *** ( here I wanted to find out the total leaves of the main/original tree)
+  op leaves : Tree -> ElemSet .
+  ceq leaves (ndl( el1 --> el2)) = el2 , (leaves(ndl(el1 --> el2 ))) if (el1 in ndl) and (not( el2 in ndl)) .
+
+
+***( With this operation , we can find the broken tree leaves by removing the elements and children set of those element one way to prune the tree)
+  op brleaves : BrTree -> ElemSet .
+  eq brleaves(break( els , t)) =  leaves (t) - ( els, childof(els)) .
 
   *** overload the branch to work over sets of elements
   op branch : ElemSet Tree -> TreeSet .
@@ -170,6 +178,31 @@ fmod FILTERTREE is
   eq break(empty, bt) = bt .
   eq break ((els,el), bt) = break(els, break(el,bt)) .
 
+***( These are set minus operation)
+
+***(op remove : Elem ElemSet -> ElemSet .
+eq remove(el, (el)) = empty .
+eq remove(el, (el, els)) = remove(el, els) .
+eq remove(el, els) = els [owise] .
+
+op setminus : ElemSet ElemSet -> ElemSet .
+ceq (els1 - el, els) = els1 )
+
+
+  op Add : Elem ElemSet -> ElemSet .
+  eq Add(el, empty) = el .
+  eq Add(el, els) = els, el .
+
+  op _-_ : ElemSet ElemSet -> ElemSet [ctor gather (E e)] .
+  eq empty - els = empty .
+  eq els - empty = els .
+  eq els - neels = setminus(els, neels, empty) .
+
+  op setminus : ElemSet ElemSet ElemSet -> ElemSet .
+  eq setminus((el,els), els1, A) = if el in els1 then A else Add(el, A) fi .
+  eq setminus((el, els), els1, A) = setminus(els, els1, setminus(el, els1, A)) .
+
+
 endfm
 
 fmod TEST is
@@ -182,6 +215,11 @@ fmod TEST is
   (HAss --> LabAss) (Spcl --> Gynac) (Spcl --> DT) .
 
 endfm
+
+
+
+
+
 *** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) . ---> Tree
 *** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin -/-> marketing) . ---> BrTree
 *** red root(Hlthcr) (Hlthcr --> Admin)  (Doc -/-> Spcl) . ---> NeNodeList
