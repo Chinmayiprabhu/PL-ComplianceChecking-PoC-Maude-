@@ -63,9 +63,6 @@ fmod TREE is
    cmb ndl (el1 -/-> el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: Tree .
    cmb ndl (el1 -/-> el2) : BrTree if (el1 in ndl) and  (not (el2 in ndl)) and ndl :: BrTree .
 
-
-
-
    op existPath : Elem Elem NeNodeList -> Bool .
    eq existPath(el1 , el2 , ndl (el1 --> el2) ) = true .
    eq existPath(el1 , el2 , ndl (el --> el2) ) = (el == el1) or existPath(el1 , el , ndl) .
@@ -73,23 +70,23 @@ fmod TREE is
    eq existPath(el1 , el2 , ndl nd ) =  existPath(el1 , el2, ndl) .
    eq existPath(el1 , el2 , ndl) = false [owise] .
 
-
-
    *** The Parent function
    op  parent : Elem NeNodeList -> Elem .
-
    eq  parent(el, root(el1)) = eRROr .
    ceq parent(el, ndl ( el1 --> el2 ))  = el1 if (el == el2) .
-   ceq parent(el, ndl ( el1 --> el2 ))  = parent(el,ndl)  if (el =/= el2) .
+   ceq parent(el, ndl ( el1 --> el2 ))  = parent(el , ndl)  if (el =/= el2) .
 
-   *** The childof function
-   op  childof : Elem NeNodeList -> ElemSet .
-   ceq childof(el  , ndl(el1 --> el2 )) = el2 if ( el == el1 ) and not ( el1 in ndl) .
-   ceq childof(el  , ndl(el1 --> el2 )) = el2 childof(el  , ndl(el1 --> el2 ) if ( el == el1 ) and ( el1 in ndl) .
-   ceq childof(el  , ndl(el1 --> el2 )) = childof( ndl ( el --> el1)) if ( el =/= el1) and ( el1 in ndl) .
-
+  ***  The childof function:
+  *** Lizeth: I think this can be simplified
+    op  childof : Elem NeNodeList -> ElemSet .
+    ceq childof(el , ndl (el1 --> el2)) = (el2 , childof(el , ndl)) if (el == el1) /\ (not (el1 in ndl)) .
+    ceq childof(el , ndl (el1 --> el2)) = (el2 , childof(el , ndl)) if (el == el1) /\ (el1 in ndl) .
+    ceq childof(el , ndl (el1 --> el2)) = childof(el , ndl) if (el =/= el1) /\ (el1 in ndl) .
+    **** Lizeth added this because seems it is not complete, hoever I did not check the logic
+    eq  childof(el, ndl) = empty [owise] .
 
 endfm
+
 
 view Tree from TRIV to TREE is
     sort Elt to Tree .
@@ -103,7 +100,6 @@ fmod TREESET is
     subsort Set{Tree} < TreeSet .
     subsort NeSet{Tree} < NeTreeSet .
 endfm
-
 
 
 fmod FILTERTREE is
@@ -154,13 +150,19 @@ fmod FILTERTREE is
   eq branch (el , ndl) = root(eRROr) [owise] .
 
  *** ( here I wanted to find out the total leaves of the main/original tree)
-  op leaves : Tree -> ElemSet .
-  ceq leaves (ndl( el1 --> el2)) = el2 , (leaves(ndl(el1 --> el2 ))) if (el1 in ndl) and (not( el2 in ndl)) .
+ *** Lizeth: this is not correct. I think perhaps you need to have double copy of the tree?
+ *** rememeber that your equations need to termiante, which means that the expression to the right shoudl get smaller and smaller
+  op leaves : BrTree -> ElemSet .
+  ceq leaves (ndl ( el1 --> el2)) = (el2 , leaves(ndl)) if (el1 in ndl) /\ (not( el2 in ndl)) .
+  ceq leaves (ndl ( el1 -/-> el2)) = (el2 , leaves(ndl)) if (el1 in ndl) /\ (not( el2 in ndl)) .
 
 
 ***( With this operation , we can find the broken tree leaves by removing the elements and children set of those element one way to prune the tree)
-  op brleaves : BrTree -> ElemSet .
-  eq brleaves(break( els , t)) =  leaves (t) - ( els, childof(els)) .
+  *** Lizeth: you probably need to revisit this function since childof will change and I have changed the signatus completelly so it is possible to be reduced
+  op brleaves : BrTree Elem -> ElemSet .
+  eq brleaves(t , el) =  leaves(t) \ (el , childof(el,t)) .
+  *** op brleaves : BrTree -> ElemSet .
+  *** eq brleaves(break( els , t)) =  leaves (t) - ( els, childof(els)) . Lizeth: please pay attention to the signature of the functions in the equations!!!
 
   *** overload the branch to work over sets of elements
   op branch : ElemSet Tree -> TreeSet .
@@ -179,38 +181,49 @@ fmod FILTERTREE is
   eq break ((els,el), bt) = break(els, break(el,bt)) .
 
 ***( These are set minus operation)
+*** Lizeth: this function does not seems correct
+op remove : Elem ElemSet -> ElemSet .
+eq remove(el, el) = empty .
+eq remove(el, (el , els)) = remove(el , els) . *** Lizeth: this is a set not a multiset
+eq remove(el, els) = els [owise] . ***???
 
-***(op remove : Elem ElemSet -> ElemSet .
-eq remove(el, (el)) = empty .
-eq remove(el, (el, els)) = remove(el, els) .
-eq remove(el, els) = els [owise] .
-
+*** Lizeth: here the signature and the equation do not match
 op setminus : ElemSet ElemSet -> ElemSet .
-ceq (els1 - el, els) = els1 )
+***eq (els1 - el, els) = els1 .
 
+*** Lizeth: Do you really need this?  isn't this the insert function in the prelude?
+op add : Elem ElemSet -> ElemSet .
+eq add(el, empty) = el .
+eq add(el, els) = (els , el) .
 
-  op Add : Elem ElemSet -> ElemSet .
-  eq Add(el, empty) = el .
-  eq Add(el, els) = els, el .
+*** Lizeth: Do you really need this?  isn't this the \   in the prelude?
+***op _-_ : ElemSet ElemSet -> ElemSet [ctor gather (E e)] .
+***eq empty - els = empty .
+***eq els - empty = els .
+***eq els - neels = setminus(els, neels, empty) .
 
-  op _-_ : ElemSet ElemSet -> ElemSet [ctor gather (E e)] .
-  eq empty - els = empty .
-  eq els - empty = els .
-  eq els - neels = setminus(els, neels, empty) .
-
-  op setminus : ElemSet ElemSet ElemSet -> ElemSet .
-  eq setminus((el,els), els1, A) = if el in els1 then A else Add(el, A) fi .
-  eq setminus((el, els), els1, A) = setminus(els, els1, setminus(el, els1, A)) .
+***  op setminus : ElemSet ElemSet ElemSet -> ElemSet .
+***  eq setminus((el,els), els1, A) = if el in els1 then A else Add(el, A) fi .
+***  eq setminus((el, els), els1, A) = setminus(els, els1, setminus(el, els1, A)) .
 
 
 endfm
 
+
 fmod TEST is
   including FILTERTREE .
-  ops Hlthcr Admin Hlthwrkr marketing Billing Doc HAss Phar Spcl GP Nur LabAss Gynac DT cleaner : -> Elem .
 
-  op tr : -> Tree .
-  eq tr = root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) (Admin --> Billing)
+
+  ops Hlthcr Admin Hlthwrkr marketing Billing Doc HAss Phar Spcl GP Nur LabAss Gynac DT cleaner : -> Elem .
+  ops a b c d e : -> Elem .
+
+  ops tr1 tr2 tr3 : -> Tree .
+
+  eq tr3 = root(a) .
+
+  eq tr1 = root(a) (a --> b) (a --> c) (c --> d) (c --> d) .
+
+  eq tr2 = root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) (Admin --> Billing)
   (Hlthwrkr --> Doc) (Hlthwrkr --> Phar)(Hlthwrkr --> HAss) (Doc --> Spcl) ( Doc --> GP ) (HAss --> Nur)
   (HAss --> LabAss) (Spcl --> Gynac) (Spcl --> DT) .
 
