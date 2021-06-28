@@ -207,30 +207,34 @@ fmod FILTERTREE is
 endfm
 
 
+
 fmod TEST is
   including FILTERTREE .
 
 
   ops Hlthcr Admin Hlthwrkr marketing Billing Doc HAss Phar Spcl GP Nur LabAss Gynac DT cleaner : -> Elem .
   ops a b c d e : -> Elem .
+  ops Hlthservs trt Gnrltrt Spcltrt Gchckup RoutineChk Dent Gynac Derm Othrs Dentr crown Rootcnl Pymnt Online offline : -> Elem .
+  ops Europe EastEu NorthEu CntrlEu SouthEu WestEu : -> Elem .
 
-  ops tr1 tr2 tr3  : -> Tree .
+  ops tr1 tr2 tr3 entityTr purposeTr locationTr : -> Tree .
 
   eq tr3 = root(a) .
 
   eq tr1 = root(a) (a --> b) (a --> c) (c --> d) (c --> d) .
 
-  eq tr2 = root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) (Admin --> Billing)
+  eq entityTr = root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) (Admin --> Billing)
   (Hlthwrkr --> Doc) (Hlthwrkr --> Phar)(Hlthwrkr --> HAss) (Doc --> Spcl) ( Doc --> GP ) (HAss --> Nur)
-  (HAss --> LabAss) (Spcl --> Gynac) (Spcl --> DT) (GP --> cleaner).
+  (HAss --> LabAss) (Spcl --> Gynac) (Spcl --> DT) (GP --> cleaner) .
 
+  eq purposeTr = root(Hlthservs) (Hlthservs --> trt )(Hlthservs --> Pymnt )(trt --> Gnrltrt ) (trt --> Spcltrt )(Gnrltrt --> Gchckup )
+  (Gnrltrt --> RoutineChk) (Spcltrt --> Dent) (Spcltrt --> Gynac) (Spcltrt --> Derm ) (Spcltrt --> Othrs) (Dent --> Dentr)
+    (Dent --> crown) (Dent --> Rootcnl) (Pymnt --> Online) (Pymnt --> offline) .
+
+  eq locationTr = root(Europe) (Europe --> EastEu) (Europe --> NorthEu) (Europe --> CntrlEu)(Europe --> SouthEu) (Europe --> WestEu) .
 
 
 endfm
-
-
-
-
 
 *** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) . ---> Tree
 *** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin -/-> marketing) . ---> BrTree
