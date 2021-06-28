@@ -77,12 +77,10 @@ fmod TREE is
    ceq parent(el, ndl ( el1 --> el2 ))  = parent(el , ndl)  if (el =/= el2) .
 
   ***  The childof function:
-  *** Lizeth: I think this can be simplified
     op  childof : Elem NeNodeList -> ElemSet .
     ceq childof(el , ndl (el1 --> el2)) = (el2 , childof(el , ndl)) if (el == el1) /\ (not (el1 in ndl)) .
     ceq childof(el , ndl (el1 --> el2)) = (el2 , childof(el , ndl)) if (el == el1) /\ (el1 in ndl) .
     ceq childof(el , ndl (el1 --> el2)) = childof(el , ndl) if (el =/= el1) /\ (el1 in ndl) .
-    **** Lizeth added this because seems it is not complete, hoever I did not check the logic
     eq  childof(el, ndl) = empty [owise] .
 
 endfm
@@ -106,11 +104,10 @@ fmod FILTERTREE is
   including TREE .
   including ELEMSET .
   including TREESET .
-  sort FamilyTree .
+  including SET{Elem} .
+  ***sort FamilyTree .
   *** sort leavesSet .
-
-  op <_:_> : TreeSet Elem -> FamilyTree [ctor] .
-
+  *** op <_:_> : TreeSet Elem -> FamilyTree [ctor] .
   *** op <_;_> : TreeSet ElemSet -> leavesSet [ctor] .
 
   vars el el1 el2 : Elem .
@@ -121,26 +118,25 @@ fmod FILTERTREE is
   var bt : BrTree .
   var ndl : NeNodeList .
 
-
-
- ***(
-  given a node which is a subtree T, it return a pair where the first part
-  is the original tree T and the second part is the branch from the given element .
-  )
-  op _with_ : Elem Tree -> FamilyTree .
-  eq el with t = <  branch(el,t) : el > .
+  ***Not using this snippet
+  ***op _with_ : Elem Tree -> FamilyTree .
+  ***eq el with t = <  branch(el,t) : el > .
+  ***op (_:\:_)with_  : Elem  NeElemSet Tree -> FamilyTree .
+  ***eq (el :\: els) with t = < break(els,t) : el > .
 
 
 
-  ***(
-  given a node which is a subtree T, it return a pair where the first part
-  is the broken tree from T and the second part is the set of branches
-  that were broken .
-  )
-  op (_:\:_)with_  : Elem  NeElemSet Tree -> FamilyTree .
-  eq (el :\: els) with t = < break(els,t) : el > .
+  op _with_ : Elem Tree -> Set{Elem}.
+  eq el with t =  branchelem(el,t) .
 
-  **** given a node it returns a branch from such node .
+ *** filter opeartor with respect to tree
+  op (_:\:_)with _ : Elem NeElemSet Tree -> Set{Elem} .
+  eq (el :\: els) with t = Inter (((el :|: els) with t), leavesof (t) ) .
+
+  op (_:|:_)with_  : Elem NeElemSet Tree -> Set{Elem} .
+  eq (el :|: els) with t =  dif (branchelem(el, t ) , branchelem( els, t )) .
+
+  ****given a node it returns a branch from such node .
   op branch : Elem Tree -> Tree .
   eq branch(el , root(el))  = root(el) .
   eq branch(el , ndl (el1 --> el))   = root(el) .
@@ -149,20 +145,48 @@ fmod FILTERTREE is
   ceq branch(el , ndl (el1 --> el2))  = branch(el , ndl)  if existPath( el, el1, ndl (el1 --> el2)) == false .
   eq branch (el , ndl) = root(eRROr) [owise] .
 
- *** ( here I wanted to find out the total leaves of the main/original tree)
- *** Lizeth: this is not correct. I think perhaps you need to have double copy of the tree?
- *** rememeber that your equations need to termiante, which means that the expression to the right shoudl get smaller and smaller
-  op leaves : BrTree -> ElemSet .
-  ceq leaves (ndl ( el1 --> el2)) = (el2 , leaves(ndl)) if (el1 in ndl) /\ (not( el2 in ndl)) .
-  ceq leaves (ndl ( el1 -/-> el2)) = (el2 , leaves(ndl)) if (el1 in ndl) /\ (not( el2 in ndl)) .
+  *** given a elem it returns all the elements in that brnach
+  op branchelem : Elem Tree -> Set{Elem} .
+  eq branchelem(el , root(el))  = el .
+  eq branchelem(el , ndl (el1 --> el))   = el .
+  eq branchelem(el , ndl (el --> el2))   = (el2 , branchelem(el , ndl))  .
+  ceq branchelem(el , ndl (el1 --> el2)) = (el2 ,branchelem(el , ndl)) if existPath( el, el1, ndl (el1 --> el2)) .
+  ceq branchelem(el , ndl (el1 --> el2))  = (branchelem(el , ndl))  if existPath( el, el1, ndl (el1 --> el2)) == false .
+  eq branchelem (el , ndl) = empty [owise] .
 
+  *** overload the branchelem to work over sets
+  op branchelem : ElemSet Tree -> Set{Elem} .
+  eq branchelem (empty , t) = empty .
+  eq branchelem ((els, el) , t) =  branchelem(els , t) , branchelem(el , t) .
 
-***( With this operation , we can find the broken tree leaves by removing the elements and children set of those element one way to prune the tree)
-  *** Lizeth: you probably need to revisit this function since childof will change and I have changed the signatus completelly so it is possible to be reduced
-  op brleaves : BrTree Elem -> ElemSet .
-  eq brleaves(t , el) =  leaves(t) \ (el , childof(el,t)) .
-  *** op brleaves : BrTree -> ElemSet .
-  *** eq brleaves(break( els , t)) =  leaves (t) - ( els, childof(els)) . Lizeth: please pay attention to the signature of the functions in the equations!!!
+  ***Set difference opeartor from prelude
+  op dif : Set{Elem} Set{Elem} -> Set{Elem} .
+  eq dif (els, els1 ) = (els \ els1) .
+
+  *** Set Intersection operation from prelude
+  op Inter : Set{Elem} Set{Elem} -> Set{Elem} .
+  eq Inter (els, els1 ) = intersection (els , els1) .
+
+  *** ( Set of elements in total tree or original tree )
+  op originaltree : Tree -> Set{Elem} .
+  eq originaltree ( ndl ( el1 --> el2)) = ( el2 , originaltree( ndl ) ) .
+  eq originaltree ( ndl)  = empty [owise] .
+
+  ***For any given elem this checks if it has no children
+  op Zerochildren : Tree -> Set{Elem} .
+  ceq Zerochildren ( ndl ( el1 --> el2) ) = ( el1, Zerochildren(ndl)) if (lenChildren(el2 , ndl(el1 --> el2)) == 0) .
+  eq Zerochildren ( ndl) = empty [owise] .
+
+  *** For any Elem in tree checks how many children it has.
+  op lenChildren : Elem NeNodeList -> Nat .
+  ceq lenChildren ( el, ndl(el1 --> el2)) = 1 if (el == el1) /\ (not( el1 in ndl)) .
+  ceq lenChildren ( el, ndl(el1 --> el2)) = 1 + lenChildren(el, ndl) if (el == el1) /\ (( el1 in ndl)) .
+  ceq lenChildren ( el, ndl(el1 --> el2)) = lenChildren(el, ndl) if (el =/= el1) /\ (el1 in ndl) .
+  eq lenChildren ( el , ndl) = 0 [owise] .
+
+  *** using the previous calculatoon this gives total number of leavues in the main tree
+  op leavesof : Tree -> Set{Elem} .
+  eq leavesof (t) =  dif (originaltree(t) , Zerochildren(t)) .
 
   *** overload the branch to work over sets of elements
   op branch : ElemSet Tree -> TreeSet .
@@ -180,33 +204,6 @@ fmod FILTERTREE is
   eq break(empty, bt) = bt .
   eq break ((els,el), bt) = break(els, break(el,bt)) .
 
-***( These are set minus operation)
-*** Lizeth: this function does not seems correct
-op remove : Elem ElemSet -> ElemSet .
-eq remove(el, el) = empty .
-eq remove(el, (el , els)) = remove(el , els) . *** Lizeth: this is a set not a multiset
-eq remove(el, els) = els [owise] . ***???
-
-*** Lizeth: here the signature and the equation do not match
-op setminus : ElemSet ElemSet -> ElemSet .
-***eq (els1 - el, els) = els1 .
-
-*** Lizeth: Do you really need this?  isn't this the insert function in the prelude?
-op add : Elem ElemSet -> ElemSet .
-eq add(el, empty) = el .
-eq add(el, els) = (els , el) .
-
-*** Lizeth: Do you really need this?  isn't this the \   in the prelude?
-***op _-_ : ElemSet ElemSet -> ElemSet [ctor gather (E e)] .
-***eq empty - els = empty .
-***eq els - empty = els .
-***eq els - neels = setminus(els, neels, empty) .
-
-***  op setminus : ElemSet ElemSet ElemSet -> ElemSet .
-***  eq setminus((el,els), els1, A) = if el in els1 then A else Add(el, A) fi .
-***  eq setminus((el, els), els1, A) = setminus(els, els1, setminus(el, els1, A)) .
-
-
 endfm
 
 
@@ -217,7 +214,7 @@ fmod TEST is
   ops Hlthcr Admin Hlthwrkr marketing Billing Doc HAss Phar Spcl GP Nur LabAss Gynac DT cleaner : -> Elem .
   ops a b c d e : -> Elem .
 
-  ops tr1 tr2 tr3 : -> Tree .
+  ops tr1 tr2 tr3  : -> Tree .
 
   eq tr3 = root(a) .
 
@@ -225,7 +222,9 @@ fmod TEST is
 
   eq tr2 = root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) (Admin --> Billing)
   (Hlthwrkr --> Doc) (Hlthwrkr --> Phar)(Hlthwrkr --> HAss) (Doc --> Spcl) ( Doc --> GP ) (HAss --> Nur)
-  (HAss --> LabAss) (Spcl --> Gynac) (Spcl --> DT) .
+  (HAss --> LabAss) (Spcl --> Gynac) (Spcl --> DT) (GP --> cleaner).
+
+
 
 endfm
 
@@ -249,9 +248,10 @@ endfm
 *** red break ( ( Admin , Spcl ) , tr ) . --> BrTree: root(Hlthcr) Hlthcr -/-> Admin Hlthcr --> Hlthwrkr Admin --> marketing Admin --> Billing Hlthwrkr -->
     *** Doc Hlthwrkr --> Phar Hlthwrkr --> HAss Doc -/-> Spcl Doc --> GP HAss --> Nur HAss --> LabAss Spcl --> Gynac Spcl --> DT
 
-*** red ( Hlthwrkr :\: LabAss ) with tr .
-*** red ( Hlthwrkr :\: LabAss, Billing ) with tr . --> [FamilyTree]: < root(Hlthcr) Hlthcr --> Admin Hlthcr --> Hlthwrkr Admin --> marketing Admin -/-> Billing
-        *** Hlthwrkr --> Doc Hlthwrkr --> Phar Hlthwrkr --> HAss Doc --> Spcl Doc --> GP HAss --> Nur HAss -/-> LabAss Spcl -->
-        *** Gynac Spcl --> DT : Hlthwrkr >
+*** red ( (Hlthcr :\: Admin, Doc, HAss) with tr2 ) . --> result Elem: Phar
+**** red ( (Hlthcr :\: Doc, HAss) with tr2 ) . --> result NeSet{Elem}: marketing, Billing, Phar
+**** red ( (Hlthcr :\: Doc) with tr2 ) . --> result NeSet{Elem}: marketing, Billing, Phar, Nur, LabAss
+
+***  red leavesof (tr2) . --> result NeSet{Elem}: marketing, Billing, Phar, Nur, LabAss, Gynac, DT, cleaner
 
 *** red Spcl with tr . --> FamilyTree: < root(Spcl) Spcl --> Gynac Spcl --> DT : Spcl >
