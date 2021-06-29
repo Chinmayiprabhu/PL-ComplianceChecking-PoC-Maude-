@@ -215,7 +215,10 @@ fmod TEST is
   ops Hlthcr Admin Hlthwrkr marketing Billing Doc HAss Phar Spcl GP Nur LabAss Gynac DT cleaner : -> Elem .
   ops a b c d e : -> Elem .
   ops Hlthservs trt Gnrltrt Spcltrt Gchckup RoutineChk Dent Gynac Derm Othrs Dentr crown Rootcnl Pymnt Online offline : -> Elem .
-  ops Europe EastEu NorthEu CntrlEu SouthEu WestEu : -> Elem .
+  ops Europe EastEu NorthEu CntrlEu SouthEu WestEu Belarus BulgariaCzechia Czechoslovakia Hungary Moldova Poland Romania
+RussianFederation Slovakia Ukraine UnionofSovietSocialistRepublics Denmark Estonia FaroeIslands Finland Iceland Ireland Latvia Lithuania
+Norway Sweden UnitedKingdom Albania Andorra BosniaHerzegovina Croatia Cyprus Gibraltar Greece HolySee Italy Malta Montenegro NorthMacedonia
+Portugal SanMarino Serbia SerbiaMontenegro Slovenia Spain Yugoslavia Austria Belgium France Germany Luxembourg Netherlands Switzerland Liechtenstein : -> Elem .
 
   ops tr1 tr2 tr3 entityTr purposeTr locationTr : -> Tree .
 
@@ -231,8 +234,15 @@ fmod TEST is
   (Gnrltrt --> RoutineChk) (Spcltrt --> Dent) (Spcltrt --> Gynac) (Spcltrt --> Derm ) (Spcltrt --> Othrs) (Dent --> Dentr)
     (Dent --> crown) (Dent --> Rootcnl) (Pymnt --> Online) (Pymnt --> offline) .
 
-  eq locationTr = root(Europe) (Europe --> EastEu) (Europe --> NorthEu) (Europe --> CntrlEu)(Europe --> SouthEu) (Europe --> WestEu) .
-
+  eq locationTr = root(Europe) (Europe --> EastEu)(Europe --> NorthEu) (Europe --> CntrlEu)(Europe --> SouthEu) (Europe --> WestEu )
+  (EastEu --> Belarus) (EastEu --> BulgariaCzechia) (EastEu --> Czechoslovakia)  (EastEu --> Hungary) (EastEu --> Moldova)
+  (EastEu --> Poland) (EastEu --> Romania) (EastEu --> RussianFederation) (EastEu -->  Slovakia)
+  (EastEu --> Ukraine) (EastEu --> UnionofSovietSocialistRepublics)  (NorthEu --> Denmark) (NorthEu --> Estonia) (NorthEu --> FaroeIslands) (NorthEu --> Finland)
+  (NorthEu --> Iceland ) (NorthEu --> Ireland) (NorthEu --> Latvia) (NorthEu --> Lithuania) (NorthEu --> Norway) (NorthEu --> Sweden) (NorthEu --> UnitedKingdom) (SouthEu --> Albania)
+  (SouthEu --> Andorra ) (SouthEu --> BosniaHerzegovina ) (SouthEu --> Croatia) (SouthEu --> Cyprus)
+  (SouthEu --> Gibraltar) (SouthEu --> Greece ) (SouthEu --> HolySee) (SouthEu --> Italy) (SouthEu --> Malta ) (SouthEu --> Montenegro ) (SouthEu --> NorthMacedonia ) (SouthEu --> Portugal )
+  (SouthEu --> SanMarino) (SouthEu --> Serbia) (SouthEu --> SerbiaMontenegro) (SouthEu --> Slovenia) (SouthEu --> Spain) (SouthEu --> Yugoslavia) (WestEu --> Austria)
+  (WestEu --> Belgium) (WestEu --> France) (WestEu --> Germany) (WestEu --> Luxembourg) (WestEu --> Netherlands) (WestEu --> Switzerland ) (WestEu --> Liechtenstein) .
 
 endfm
 
