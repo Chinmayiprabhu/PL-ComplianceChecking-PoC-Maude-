@@ -1,0 +1,219 @@
+load prelude.maude
+load taxonomynew.maude
+
+
+fmod POLICY is
+  including FILTERTREE .
+  including ACCESS .
+  including TEST .
+  vars el  el1  el2 : Elem .
+  var els els1  : ElemSet .
+  var r : Nat .
+  var E  A  P  L  : ElemSet .
+  var P1  P2  P3 : Policy .
+  var neels : NeElemSet .
+  var t : Tree .
+  var bt : BrTree .
+  var ndl : NeNodeList .
+  sort Policy .
+  op ( _ , _ , _ , _ , _ ) : Set{Elem} Set{Elem} Set{Elem} Nat Set{Elem} -> Policy [ctor] .
+  mb ( (el :\: els) with t , (el & els) , (el :\: els) with t, r , (el :\: els) with t ) :  Policy  .
+  mb ( (el :\: els) with t , (el \\ els) , (el :\: els) with t, r , (el :\: els) with t ) :  Policy  .
+
+  op entity_ : Policy -> ElemSet .
+  eq entity(E , A , P , r , L) = E .
+
+  op Access_ : Policy -> ElemSet .
+  eq Access(E , A , P , r , L) = A .
+
+  op purpose_ : Policy -> ElemSet .
+  eq purpose(E , A , P , r , L) = P .
+
+  op Ret_ : Policy -> Nat .
+  eq Ret(E , A , P , r , L) = r .
+
+  op Loc_ : Policy -> ElemSet .
+  eq Loc(E , A , P , r , L) = L .
+
+  op PolicyId : Policy -> Nat .
+
+
+
+endfm
+
+
+view Policy from TRIV to POLICY is
+    sort Elt to Policy .
+endv
+
+fmod POLICYSET is
+
+  including POLICY .
+  including SET{Policy} .
+
+  sorts PolicySet NePolicySet .
+  subsort Set{Policy} < PolicySet .
+
+
+endfm
+
+fmod COMPLIANCE is
+including POLICY .
+including ELEMSET .
+including POLICYSET .
+including SET{Elem} .
+
+vars P1  P2  P3 : Policy .
+var PS :  Set{Policy} .
+vars els els1 : ElemSet .
+vars r1  r2 : Nat .
+
+op _subseq_ : Policy Policy -> Bool .
+eq P1 subseq P2 = P1 subset P2 .
+
+op _subse_ : Set{Elem} Set{Elem} -> Bool .
+eq els subse els1 = els subset els1 .
+
+op _less_ : Nat Nat -> Bool .
+eq r1 less r2 = r1 < r2 .
+
+op _\C_ : Policy Policy -> Bool .
+ceq P1 \C P2 = true if entity(P1) subse entity(P2) /\ Access(P1) subse Access(P2) /\  purpose(P1) subse purpose(P2) /\ Ret(P1) <= Ret(P2) /\ Loc(P1) subse Loc (P2) .
+eq P1 \C P2 = false [owise] .
+***To chcek complaince between user defined polcies
+op _\CO_ : Policy Set{Policy} -> Bool .
+ceq P1 \CO (P2, P3) = true if (P1 \C P2) /\ (P1 \C P3) .
+***To chcek compliance between DC policies and user polciies
+op _\Com_ : Set{Policy} Policy  -> Bool .
+ceq (P1, P2) \CO (P3) = true if (P1 \C P3) /\ (P2 \C P3) .
+eq (P1, P2) \CO (P3) = false [owise] .
+
+endfm
+
+fmod DATATYPES is
+
+including QID .
+including STRING .
+including INT .
+including NAT .
+including FLOAT .
+including ELEMSET .
+
+sorts GnrlData SensData .
+sorts PolicyID Policylist .
+subsort PolicyID < Policylist .
+subsort SensData < GnrlData .
+sorts DataList .
+subsort GnrlData < DataList .
+
+***op SData : ElemSet -> SensData [ctor] .
+
+endfm
+
+
+fmod USER is
+    including STRING .
+    including POLICY .
+    including ELEMSET .
+    including POLICYSET .
+    including SET{Elem} .
+    including DATATYPES .
+
+    var U U1 : String .
+    var Ud1 Ud2 : Nat .
+    vars PS PS1 : Set{Policy} .
+    sort User .
+    var SD : ElemSet .
+
+
+    op < _;_;_;_ > : String Nat Set{Policy} ElemSet -> User [ctor] .
+    mb < U ; Ud1 ; PS ; SD > : User .
+
+    ***op UsensData : User -> SensData .
+    op UserName_ : User -> String .
+    eq UserName < U ; Ud1 ; PS ; SD > = U .
+
+    op UPolicies_ : User -> Set{Policy} .
+    eq UPolicies < U ; Ud1 ; PS ; SD > = PS .
+
+    op UsensData_ : User -> ElemSet .
+    eq UsensData < U ; Ud1 ; PS ; SD > = SD .
+
+    op Uid_ : User -> Nat .
+    eq Uid < U ; Ud1 ; PS ; SD  > = Ud1 .
+
+
+endfm
+
+view User from TRIV to USER is
+    sort Elt to User .
+endv
+
+
+fmod USRSET is
+    including USER .
+    including SET{User} .
+
+    sort UserSet .
+    subsort Set{User} < UserSet .
+endfm
+
+
+fmod ENTRYSET is
+  including POLICY .
+  including COMPLIANCE .
+  including USER .
+  including FILTERTREE .
+
+  sort Dcpolicy .
+  subsort Dcpolicy < Policy .
+  var Pdc : Dcpolicy .
+  vars P1 P2 P3 : Policy .
+  vars PS1 PS2 : PolicySet .
+  var PdcSet : PolicySet .
+  var U U1  : User .
+  sort Comply .
+
+  op _ Entry :: _ : Policy User -> Bool .
+  ceq P1 Entry :: U = true if (P1 \CO (UPolicies U)) .
+  op _ MinReq _ : Policy Set{Policy} -> Bool .
+  ceq PdcSet MinReq P1 = true if ( PdcSet \Com P1) .
+
+  op _for_Complies?with_Dc : Policy User Set{Policy}  -> Bool .
+  ceq P1 for U Complies?with PdcSet Dc =  true if (P1 Entry :: U) /\ (PdcSet MinReq P1) == true .
+
+endfm
+
+
+
+
+fmod TESTING is
+  including FILTERTREE .
+  including ACCESS .
+  including POLICY .
+  including COMPLIANCE .
+  including USER .
+  including DATATYPES .
+  ops  Vaccinedata1  Medicaldata1  Testresults1 History1 : -> Elem .
+  ops  Vaccinedata2  Medicaldata2  Testresults2 History2 : -> Elem .
+  ops  Vaccinedata3  Medicaldata3  Testresults3 History3 : -> Elem .
+
+  ops User1 User2 User3 : -> User .
+  eq User1 = < "Alpha" ; 100001 ; PL ; (Vaccinedata1 , Medicaldata1 , Testresults1, History1) > .
+  eq User2 = < "Beta"  ; 100002 ; (PL, PL1) ; (Vaccinedata2 , Medicaldata2 , Testresults2, History2) > .
+  eq User3 = < "Gama"  ; 100003 ; (PL2 , PL3) ; (Vaccinedata3 , Medicaldata3 , Testresults3, History3) > .
+
+
+  ops PL PL1  PL2 PL3  : -> Policy .
+  eq PL = ( Hlthcr wrt entityTr , Store & Collect & Use , Hlthservs wrt purposeTr , 365 , Europe wrt locationTr ) .
+  ***eq PL = ( Doc wrt entityTr , Store & Collect & Transfer , trt wrt purposeTr , 100 , Europe wrt locationTr ).
+  eq PL1 = ( Doc wrt entityTr , Store & Collect & Transfer, trt wrt purposeTr , 200 , Europe wrt locationTr ) .
+  eq PL2 = ( Hlthcr wrt entityTr , Store & Collect & Transfer & Delete & Use , trt wrt purposeTr, 100 , Europe wrt locationTr ) .
+  eq PL3 = ( (Doc :\: GP) with entityTr , Collect & Use , Gnrltrt wrt purposeTr, 50  , EastEu wrt locationTr) .
+
+  ops Pdc1  Pdc2 : -> Policy .
+  eq Pdc1 = ( Doc wrt entityTr ,  Collect & Use, trt wrt purposeTr , 100 , Europe wrt locationTr ).
+  ***eq Pdc1 = ( Hlthcr wrt entityTr , Collect & Use , Hlthservs wrt purposeTr , 365 , Europe wrt locationTr ) .
+  eq Pdc2 = ( Billing wrt entityTr , Collect & Use  , Pymnt wrt purposeTr , 365 , Europe wrt locationTr) .
+
+endfm
