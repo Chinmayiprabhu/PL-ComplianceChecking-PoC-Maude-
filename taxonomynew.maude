@@ -39,6 +39,24 @@ fmod NODELIST is
 
 endfm
 
+fmod ACCESS is
+including ELEMSET .
+including SET{Elem} .
+sort NoAccess Access .
+subsort NoAccess < Access .
+
+var el : Elem .
+var els : ElemSet .
+var neels : NeElemSet .
+
+ op _&_ : Elem Set{Elem} -> Set{Elem} .
+ eq el & els = insert ( el , els ) .
+
+ op _\\_ : Set{Elem} Elem -> Set{Elem} .
+ eq els \\ el = delete( el, els) .
+
+endfm
+
 fmod TREE is
     including NODELIST .
     sort BrTree Tree .
@@ -111,7 +129,7 @@ fmod FILTERTREE is
   *** op <_;_> : TreeSet ElemSet -> leavesSet [ctor] .
 
   vars el el1 el2 : Elem .
-  var els els1  : ElemSet .
+  vars els els1  : ElemSet .
   var neels : NeElemSet .
   var nd : Node .
   var t : Tree .
@@ -127,7 +145,10 @@ fmod FILTERTREE is
 
 
   op _with_ : Elem Tree -> Set{Elem}.
-  eq el with t =  branchelem(el,t) .
+  eq el with t =   (el , leavesof(branch(el, t))).
+
+  op _wrt_ : Elem Tree -> Set{Elem}.
+  eq el wrt t =  branchelem(el, t).
 
  *** filter opeartor with respect to tree
   op (_:\:_)with _ : Elem NeElemSet Tree -> Set{Elem} .
@@ -135,6 +156,8 @@ fmod FILTERTREE is
 
   op (_:|:_)with_  : Elem NeElemSet Tree -> Set{Elem} .
   eq (el :|: els) with t =  dif (branchelem(el, t ) , branchelem( els, t )) .
+
+
 
   ****given a node it returns a branch from such node .
   op branch : Elem Tree -> Tree .
@@ -163,6 +186,9 @@ fmod FILTERTREE is
   op dif : Set{Elem} Set{Elem} -> Set{Elem} .
   eq dif (els, els1 ) = (els \ els1) .
 
+ op _there_ : Elem Set{Elem} -> Bool .
+ eq el there els = (el in els) .
+
   *** Set Intersection operation from prelude
   op Inter : Set{Elem} Set{Elem} -> Set{Elem} .
   eq Inter (els, els1 ) = intersection (els , els1) .
@@ -177,6 +203,16 @@ fmod FILTERTREE is
   ceq Zerochildren ( ndl ( el1 --> el2) ) = ( el1, Zerochildren(ndl)) if (lenChildren(el2 , ndl(el1 --> el2)) == 0) .
   eq Zerochildren ( ndl) = empty [owise] .
 
+  ***(op ZEro : Elem NeNodeList -> Set{Elem} .
+  ceq ZEro( el , ndl (el1 --> el2)) = (el2, branchelem(el, ndl(el1 --> el2) )) if (lenChildren(el2 , ndl(el1 --> el2)) == 0) .
+  eq ZEro (el , ndl) = empty [owise] .)
+
+  op ZEChildren : Elem NeNodeList -> Set{Elem} .
+  ceq ZEChildren ( el, ndl(el1 --> el2)) = el2 if (el == el1) /\ (not( el2 in ndl)) /\ el2 there branchelem(el, ndl(el1 --> el2))  .
+  ceq ZEChildren ( el, ndl(el1 --> el2)) = (el2, ZEChildren(el, ndl)) if (el =/= el1) /\ (not( el2 in ndl)) /\ el2 there branchelem(el, ndl(el1 --> el2)) .
+  ceq ZEChildren ( el, ndl(el1 --> el2)) = ZEChildren(el, ndl) if (el =/= el1) /\ (el1 in ndl)  /\ el2 there branchelem(el, ndl(el1 --> el2)) .
+  eq ZEChildren ( el , ndl) = empty [owise] .
+
   *** For any Elem in tree checks how many children it has.
   op lenChildren : Elem NeNodeList -> Nat .
   ceq lenChildren ( el, ndl(el1 --> el2)) = 1 if (el == el1) /\ (not( el1 in ndl)) .
@@ -187,6 +223,9 @@ fmod FILTERTREE is
   *** using the previous calculatoon this gives total number of leavues in the main tree
   op leavesof : Tree -> Set{Elem} .
   eq leavesof (t) =  dif (originaltree(t) , Zerochildren(t)) .
+
+  ***(op leaves : Elem NeNodeList -> Set{Elem} .
+  eq  leaves (el , t ) =  dif ( ))
 
   *** overload the branch to work over sets of elements
   op branch : ElemSet Tree -> TreeSet .
@@ -210,8 +249,9 @@ endfm
 
 fmod TEST is
   including FILTERTREE .
+  including ACCESS .
 
-
+  ops Store Collect Transfer Use Delete : -> Elem .
   ops Hlthcr Admin Hlthwrkr marketing Billing Doc HAss Phar Spcl GP Nur LabAss Gynac DT cleaner : -> Elem .
   ops a b c d e : -> Elem .
   ops Hlthservs trt Gnrltrt Spcltrt Gchckup RoutineChk Dent Gynac Derm Othrs Dentr crown Rootcnl Pymnt Online offline : -> Elem .
@@ -245,6 +285,9 @@ Portugal SanMarino Serbia SerbiaMontenegro Slovenia Spain Yugoslavia Austria Bel
   (WestEu --> Belgium) (WestEu --> France) (WestEu --> Germany) (WestEu --> Luxembourg) (WestEu --> Netherlands) (WestEu --> Switzerland ) (WestEu --> Liechtenstein) .
 
 endfm
+
+
+
 
 *** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) . ---> Tree
 *** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin -/-> marketing) . ---> BrTree
