@@ -20,6 +20,7 @@ fmod ELEMSET is
     subsort NeSet{Elem} < NeElemSet .
 endfm
 
+
 fmod NODE is
     including ELEM .
     including ELEMSET .
@@ -202,10 +203,6 @@ fmod FILTERTREE is
   op Zerochildren : Tree -> Set{Elem} .
   ceq Zerochildren ( ndl ( el1 --> el2) ) = ( el1, Zerochildren(ndl)) if (lenChildren(el2 , ndl(el1 --> el2)) == 0) .
   eq Zerochildren ( ndl) = empty [owise] .
-
-  ***(op ZEro : Elem NeNodeList -> Set{Elem} .
-  ceq ZEro( el , ndl (el1 --> el2)) = (el2, branchelem(el, ndl(el1 --> el2) )) if (lenChildren(el2 , ndl(el1 --> el2)) == 0) .
-  eq ZEro (el , ndl) = empty [owise] .)
 
   op ZEChildren : Elem NeNodeList -> Set{Elem} .
   ceq ZEChildren ( el, ndl(el1 --> el2)) = el2 if (el == el1) /\ (not( el2 in ndl)) /\ el2 there branchelem(el, ndl(el1 --> el2))  .
