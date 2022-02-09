@@ -1,0 +1,135 @@
+load prelude.maude
+load taxonomynew.maude
+
+
+fmod POLICY is
+  including FILTERTREE .
+  including ACCESS .
+  including TEST .
+  vars el  el1  el2 : Elem .
+  var els els1  : ElemSet .
+  var R : Nat .
+  var E  A  P  L  : ElemSet .
+  var P1  P2  P3 : Policy .
+  var neels : NeElemSet .
+  var t : Tree .
+  var bt : BrTree .
+  var ndl : NeNodeList .
+  sort Policy .
+  op ( _ , _ , _ , _ , _ ) : Set{Elem} Set{Elem} Set{Elem} Nat Set{Elem} -> Policy [ctor] .
+  mb ( (el :\: els) with t , ((el & els)) , (el :\: els) with t, R , (el :\: els) with t ) :  Policy  .
+  mb ( (el :\: els) with t , ((el \\ els)) , (el :\: els) with t, R , (el :\: els) with t ) :  Policy  .
+
+  op entity_ : Policy -> ElemSet .
+  eq entity(E , A , P , R , L) = (E) .
+
+  op Actions_ : Policy -> ElemSet .
+  eq Actions(E , A , P , R , L) = (A) .
+
+  op purpose_ : Policy -> ElemSet .
+  eq purpose(E , A , P , R , L) = P .
+
+  op Ret_ : Policy -> Nat .
+  eq Ret(E , A , P , R , L) = R .
+
+  op Loc_ : Policy -> ElemSet .
+  eq Loc(E , A , P , R , L) = L .
+
+
+
+endfm
+
+view Policy from TRIV to POLICY is
+    sort Elt to Policy .
+endv
+
+fmod POLICYSET is
+    including POLICY .
+    including SET{Policy} .
+
+    sorts PolicySet NePolicySet .
+    subsort Set{Policy} < PolicySet .
+    subsort NeSet{Policy} < NePolicySet .
+
+
+endfm
+
+fmod POLICY-LIST is
+  including POLICY .
+
+  sort NePolicyList .
+  subsort Policy < NePolicyList .
+  op singlepolicy : Policy -> NePolicyList [ctor] .
+  op [ _ , _ ] : NePolicyList Policy -> NePolicyList [ctor] .
+
+endfm
+
+fmod COMPLIANCE is
+including POLICY .
+including ELEMSET .
+including POLICYSET .
+including POLICY-LIST .
+including SET{Elem} .
+including LIST{Policy} .
+including NAT .
+
+vars P1  P2  P3  P4 : Policy .
+var Ps Ps1 :  NePolicyList .
+vars els els1 : ElemSet .
+vars R1  R2 : Nat .
+
+op _subseq_ : Policy Policy -> Bool .
+eq P1 subseq P2 = P1 subset P2 .
+
+op _subse_ : Set{Elem} Set{Elem} -> Bool .
+eq els subse els1 = els subset els1 .
+
+op _less_ : Nat Nat -> Bool .
+eq R1 less R2 = R1 < R2 .
+
+op Inter : Set{Elem} Set{Elem} -> Set{Elem} .
+eq Inter (els, els1 ) = intersection (els , els1) .
+
+op Join : Set{Elem} Set{Elem} -> Set{Elem} .
+eq Join ( els , els1) = union(els, els1) .
+
+op _\C_ : Policy Policy -> Bool .
+ceq P1 \C P2 = true if entity(P1) subse entity(P2) /\ Actions(P1) subse Actions(P2) /\  purpose(P1) subse purpose(P2) /\ Ret(P1) <= Ret(P2) /\ Loc(P1) subse Loc (P2) .
+eq P1 \C P2 = false [owise] .
+
+op (_,,_) : NePolicyList  NePolicyList  -> NePolicyList [ctor assoc ] .
+
+op complies?  : Policy NePolicyList -> Bool .
+***eq [P1 \ComplieswithSet? singlepolicy(P1)] = true .
+eq complies?(P1, P2 ) =  if (P1 \C P2) then true else false fi .
+eq complies?(P1, (P2 ,, Ps)) = if (P1 \C P2) then true else complies?(P1 ,Ps ) fi .
+eq complies?(P1, Ps ) = false .
+
+
+op closure :
+
+endfm
+
+
+
+
+fmod TESTING is
+  including FILTERTREE .
+  including POLICY .
+  including COMPLIANCE .
+
+  ops PL PL1  PL2 PL3 PE1 PE2 PE3 PE4 : -> Policy .
+
+  eq PL = ( doctor wrt entityTr , (Use & Store & Collect), healthServ wrt purposeTr , 300 , Europe wrt locationTr ) .
+  eq PL1 = ( healthAsso wrt entityTr , (Use & Store & Collect), treatm wrt purposeTr , 200 , Europe wrt locationTr ) .
+  eq PL2 = ( (hospital :\: healthProf) with entityTr , (Transfer), billing wrt purposeTr, 50  , Europe wrt locationTr) .
+
+
+  eq PE1 = ( (hospital :\: admin) with entityTr , (Use), treatm wrt purposeTr, 250  , Europe wrt locationTr) .
+  eq PE2 = ( doctor wrt entityTr , (Use & Store ), spcltreatm wrt purposeTr , 50 , Europe wrt locationTr ) .
+  eq PE3 = ( billing wrt entityTr , Collect & Use  , billing wrt purposeTr , 365 , Europe wrt locationTr) .
+  eq PE4 = ( healthAsso wrt entityTr , (Transfer), treatm wrt purposeTr , 200 , Europe wrt locationTr ) .
+
+
+
+endfm
