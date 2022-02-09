@@ -93,21 +93,33 @@ eq Inter (els, els1 ) = intersection (els , els1) .
 op Join : Set{Elem} Set{Elem} -> Set{Elem} .
 eq Join ( els , els1) = union(els, els1) .
 
+op mini : Nat Nat -> Nat .
+ceq mini( R1, R2) = R1 if (R1 < R2) .
+ceq mini( R1, R2) = R2 if (R2 < R1) .
+
 op _\C_ : Policy Policy -> Bool .
 ceq P1 \C P2 = true if entity(P1) subse entity(P2) /\ Actions(P1) subse Actions(P2) /\  purpose(P1) subse purpose(P2) /\ Ret(P1) <= Ret(P2) /\ Loc(P1) subse Loc (P2) .
 eq P1 \C P2 = false [owise] .
 
 op (_,,_) : NePolicyList  NePolicyList  -> NePolicyList [ctor assoc ] .
 
-op complies?  : Policy NePolicyList -> Bool .
+op complyrule1  : Policy NePolicyList -> Bool .
 ***eq [P1 \ComplieswithSet? singlepolicy(P1)] = true .
-eq complies?(P1, P2 ) =  if (P1 \C P2) then true else false fi .
-eq complies?(P1, (P2 ,, Ps)) = if (P1 \C P2) then true else complies?(P1 ,Ps ) fi .
-eq complies?(P1, Ps ) = false .
+eq complyrule1(P1, P2 ) =  if (P1 \C P2) then true else false fi .
+eq complyrule1(P1, (P2 ,, Ps)) = if (P1 \C P2) then true else complyrule1(P1 ,Ps ) fi .
+eq complyrule1(P1, Ps ) = false .
 
 
-op closure :
+op totalcomply : Policy NePolicyList -> Bool .
+ceq totalcomply( P1, (P2,,Ps)) = true if complyrule1( P1 , (closure(P2, Ps))) .
+eq totalcomply( P1, (P2,,Ps)) = false [owise] .
 
+op closure : NePolicyList NePolicyList  -> NePolicyList .
+eq closure(P1, P2) = ((Join(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )),
+(Inter(entity(P1),entity(P2)), Join(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )) ,
+(Inter(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Join(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )) ,
+(Inter(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Join(Loc(P1),Loc(P2) ))) .
+eq closure(P1, (P2 ,, Ps)) = closure(closure(P1, P2), Ps) .
 endfm
 
 
