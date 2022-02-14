@@ -21,9 +21,9 @@ The formalization is an initial implementation of compliance checking and hierar
  ```
  
 
-Once the files are loaded to Maude, you can check the properties mentioned like . 
+Once the files are loaded to Maude, you can check the properties mentioned below. 
  
-* Example 1 : We check the compliance between two individual policies i.e, 
+* Example 1 : To check the compliance between two individual policies i.e, 
   - PE1 = (doctor , {Use, Store}, healthServ\marketing\admin, 21/02/2022, EU)
   - PE2 =(hospital\admin, {Use,Collect,Store}, treatm, 21/02/2024, EU)
   - PE3 = (doctor, {Use, Store, Transfer}, healthServ\marketing\billing, 21/02/2022, EU)
@@ -33,7 +33,7 @@ red PE1 \C PE2 .
 red PE3 \C PE2 .
 
 ```
-* Example 2 : We check the compliance between two policy sets  i.e,
+* Example 2 : To check the compliance with  policy sets  i.e,
   #### Policy set 1 
   * PE4 =(doctor,{Use,Collect,Store},healthServ,21/02/2023,EU)
   * PE5 =(hospital\marketing,{Use,Transfer},healthServ,30/08/2023,EU)
