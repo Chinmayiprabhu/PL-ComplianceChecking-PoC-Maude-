@@ -144,7 +144,6 @@ fmod TESTING is
   eq PE2 = ( (hospital :\: admin ) with entityTr , (Use & Store & Collect), treatm wrt purposeTr , 300 , Europe wrt locationTr ) .
   eq PE3 = ( doctor with entityTr , ( Use & Store & Transfer), (healthServ :\: marketing,billing) with purposeTr , 200  , Europe wrt locationTr) .
 
-
   eq PE4 = (doctor wrt entityTr , (Use & Store & Collect) , healthServ wrt purposeTr  , 200 ,Europe wrt locationTr ) .
   eq PE5 = ((hospital :\: marketing ) with entityTr ,( Use & Store & Transfer) , healthServ wrt purposeTr , 300 , Europe wrt locationTr ) .
   eq PE6 = (healthAsso wrt entityTr , (Use & Store & Collect) , treatm wrt purposeTr , 300 , Europe wrt locationTr ) .
@@ -153,7 +152,6 @@ fmod TESTING is
   eq PL1 = (doctor wrt entityTr , (Use), spcltreatm wrt purposeTr ,100 , Europe wrt locationTr ) .
   eq PL2 = (doctor wrt entityTr , (Use & Store), spcltreatm wrt purposeTr ,100 , Europe wrt locationTr ) .
   eq PL3 = (others wrt entityTr , (Use & Store & Transfer), spcltreatm wrt purposeTr ,100 , Europe wrt locationTr ) .
-
 
 
 
