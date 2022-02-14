@@ -17,7 +17,7 @@ The formalization is an initial implementation of compliance checking and hierar
 
 ```
  sudo ./maude.darwin64 
- load  PolicyCompliance.maude .
+ load  PolicyCompl.maude .
  ```
  
 
