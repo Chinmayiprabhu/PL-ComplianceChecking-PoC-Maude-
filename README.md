@@ -1,4 +1,4 @@
-## A Policy Language to Capture Compliance of Data Protection Requirements.
+## Maude : A Policy Language to Capture Compliance of Data Protection Requirements.
 
 
 ### Overview:
@@ -39,14 +39,14 @@ red PE3 \C PE2 .
   * PE5 =(hospital\marketing,{Use,Transfer},healthServ,30/08/2023,EU)
   * PE6 =(healthAsso,{Use,Collect,Store},treatm,30/03/2023,EU))
   #### Policy set 2 
-  * PE′ = (hospital\admin,{Use},treatm,01/01/2023,EU) 
-  * PE′′ = (doctor,{Use},spclTreatm,01/01/2023,EU)
-  * PE′′′ = (doctor,{Use,Store},spclTreatm,01/01/2023,EU)
+  * PL = (hospital\admin,{Use},treatm,01/01/2023,EU) 
+  * PL1 = (doctor,{Use},spclTreatm,01/01/2023,EU)
+  * PL2 = (doctor,{Use,Store},spclTreatm,01/01/2023,EU)
 
 ```
-red totalcomply( PE` , (PE4,, PE5,, PE6)) .
-red totalcomply( PE`` , (PE4,, PE5,, PE6)) .
-red totalcomply( PE``` , (PE4,, PE5,, PE6)) .
+red complywithset(PL, (PE4,,PE5,,PE6)) .
+red complywithset(PL1, (PE4,,PE5,,PE6)) .
+red complywithset(PL2, (PE4,,PE5,,PE6)) .
 ```
 
 
