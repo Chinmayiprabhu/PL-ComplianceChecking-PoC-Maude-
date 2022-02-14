@@ -35,8 +35,6 @@ fmod POLICY is
   op Loc_ : Policy -> ElemSet .
   eq Loc(E , A , P , R , L) = L .
 
-
-
 endfm
 
 view Policy from TRIV to POLICY is
@@ -103,23 +101,33 @@ eq P1 \C P2 = false [owise] .
 
 op (_,,_) : NePolicyList  NePolicyList  -> NePolicyList [ctor assoc ] .
 
+op complysubset : Policy NePolicyList -> NePolicyList .
+ceq complysubset( P1, P2) = P2  if ( not (Inter(entity(P1), entity(P2)) == empty)) .
+ceq complysubset( P1, (P2,,Ps)) =  (P2 ,, complysubset( P1, Ps)) if (complysubset( P1, P2) == P2) .
+eq complysubset( P1, (P2,,Ps)) = complysubset( P1, Ps) .
+eq complysubset( P1, P2) = empty [owise] .
+
+
+op closure : NePolicyList -> NePolicyList .
+eq closure (P1,,P2) = ((Join(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )),,
+(Inter(entity(P1),entity(P2)), Join(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )) ,,
+(Inter(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Join(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )) ,,
+(Inter(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Join(Loc(P1),Loc(P2) ))) .
+eq closure(P1,,(P2,,Ps)) = closure(P1,,Ps) .
+
+
+
 op complyrule1  : Policy NePolicyList -> Bool .
-***eq [P1 \ComplieswithSet? singlepolicy(P1)] = true .
 eq complyrule1(P1, P2 ) =  if (P1 \C P2) then true else false fi .
 eq complyrule1(P1, (P2 ,, Ps)) = if (P1 \C P2) then true else complyrule1(P1 ,Ps ) fi .
 eq complyrule1(P1, Ps ) = false .
 
-
 op totalcomply : Policy NePolicyList -> Bool .
-ceq totalcomply( P1, (P2,,Ps)) = true if complyrule1( P1 , (closure(P2, Ps))) .
+ceq totalcomply(P1, P2) = true if P1 \C P2 .
+ceq totalcomply( P1, (P2,,Ps)) = true if complyrule1(P1 , closure(complysubset(P1, (P2,,Ps)))) == true .
+ceq totalcomply( P1, (P2,,Ps)) = true if complyrule1(P1, (P2 ,, Ps)) == true .
 eq totalcomply( P1, (P2,,Ps)) = false [owise] .
 
-op closure : NePolicyList NePolicyList  -> NePolicyList .
-eq closure(P1, P2) = ((Join(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )),
-(Inter(entity(P1),entity(P2)), Join(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )) ,
-(Inter(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Join(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )) ,
-(Inter(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Join(Loc(P1),Loc(P2) ))) .
-eq closure(P1, (P2 ,, Ps)) = closure(closure(P1, P2), Ps) .
 endfm
 
 
@@ -130,17 +138,22 @@ fmod TESTING is
   including POLICY .
   including COMPLIANCE .
 
-  ops PL PL1  PL2 PL3 PE1 PE2 PE3 PE4 : -> Policy .
+  ops PE1 PE2 PE3 PE4 PE5 PE6 PE7 PL PL1 PL2 PL3 : -> Policy .
 
-  eq PL = ( doctor wrt entityTr , (Use & Store & Collect), healthServ wrt purposeTr , 300 , Europe wrt locationTr ) .
-  eq PL1 = ( healthAsso wrt entityTr , (Use & Store & Collect), treatm wrt purposeTr , 200 , Europe wrt locationTr ) .
-  eq PL2 = ( (hospital :\: healthProf) with entityTr , (Transfer), billing wrt purposeTr, 50  , Europe wrt locationTr) .
+  eq PE1 = ( doctor wrt entityTr , (Use & Store) , (healthServ :\: marketing,admin) with purposeTr , 200 , Europe wrt locationTr ) .
+  eq PE2 = ( (hospital :\: admin ) with entityTr , (Use & Store & Collect), treatm wrt purposeTr , 300 , Europe wrt locationTr ) .
+  eq PE3 = ( doctor with entityTr , ( Use & Store & Transfer), (healthServ :\: marketing,billing) with purposeTr , 200  , Europe wrt locationTr) .
 
 
-  eq PE1 = ( (hospital :\: admin) with entityTr , (Use), treatm wrt purposeTr, 250  , Europe wrt locationTr) .
-  eq PE2 = ( doctor wrt entityTr , (Use & Store ), spcltreatm wrt purposeTr , 50 , Europe wrt locationTr ) .
-  eq PE3 = ( billing wrt entityTr , Collect & Use  , billing wrt purposeTr , 365 , Europe wrt locationTr) .
-  eq PE4 = ( healthAsso wrt entityTr , (Transfer), treatm wrt purposeTr , 200 , Europe wrt locationTr ) .
+  eq PE4 = (doctor wrt entityTr , (Use & Store & Collect) , healthServ wrt purposeTr  , 200 ,Europe wrt locationTr ) .
+  eq PE5 = ((hospital :\: marketing ) with entityTr ,( Use & Store & Transfer) , healthServ wrt purposeTr , 300 , Europe wrt locationTr ) .
+  eq PE6 = (healthAsso wrt entityTr , (Use & Store & Collect) , treatm wrt purposeTr , 300 , Europe wrt locationTr ) .
+
+  eq PL = ((hospital :\: admin ) with entityTr,(Use), treatm wrt purposeTr ,100 , Europe wrt locationTr ) .
+  eq PL1 = (doctor wrt entityTr , (Use), spcltreatm wrt purposeTr ,100 , Europe wrt locationTr ) .
+  eq PL2 = (doctor wrt entityTr , (Use & Store), spcltreatm wrt purposeTr ,100 , Europe wrt locationTr ) .
+  eq PL3 = (others wrt entityTr , (Use & Store & Transfer), spcltreatm wrt purposeTr ,100 , Europe wrt locationTr ) .
+
 
 
 
