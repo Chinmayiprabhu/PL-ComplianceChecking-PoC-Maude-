@@ -101,13 +101,6 @@ eq P1 \C P2 = false [owise] .
 
 op (_,,_) : NePolicyList  NePolicyList  -> NePolicyList [ctor assoc ] .
 
-op complysubset : Policy NePolicyList -> NePolicyList .
-ceq complysubset( P1, P2) = P2  if ( not (Inter(entity(P1), entity(P2)) == empty)) .
-ceq complysubset( P1, (P2,,Ps)) =  (P2 ,, complysubset( P1, Ps)) if (complysubset( P1, P2) == P2) .
-eq complysubset( P1, (P2,,Ps)) = complysubset( P1, Ps) .
-eq complysubset( P1, P2) = empty [owise] .
-
-
 op closure : NePolicyList -> NePolicyList .
 eq closure (P1,,P2) = ((Join(entity(P1),entity(P2)), Inter(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )),,
 (Inter(entity(P1),entity(P2)), Join(Actions(P1), Actions(P2)) , Inter(purpose(P1),purpose(P2) ), min(Ret(P1) , Ret(P2)), Inter(Loc(P1),Loc(P2) )) ,,
@@ -116,23 +109,35 @@ eq closure (P1,,P2) = ((Join(entity(P1),entity(P2)), Inter(Actions(P1), Actions(
 eq closure(P1,,(P2,,Ps)) = closure(P1,,Ps) .
 
 
+***This function helps to chceking compliance rule between policy sets
+op complysubset : Policy NePolicyList -> NePolicyList .
+ceq complysubset( P1, P2) = P2  if ( not (Inter(entity(P1), entity(P2)) == empty)) .
+ceq complysubset( P1, (P2,,Ps)) =  (P2 ,, complysubset( P1, Ps)) if (complysubset( P1, P2) == P2) .
+eq complysubset( P1, (P2,,Ps)) = complysubset( P1, Ps) .
+eq complysubset( P1, P2) = empty [owise] .
 
+***function for compliance between two policy entries
 op complyrule1  : Policy NePolicyList -> Bool .
 eq complyrule1(P1, P2 ) =  if (P1 \C P2) then true else false fi .
 eq complyrule1(P1, (P2 ,, Ps)) = if (P1 \C P2) then true else complyrule1(P1 ,Ps ) fi .
 eq complyrule1(P1, Ps ) = false .
-
-op totalcomply : Policy NePolicyList -> Bool .
-ceq totalcomply(P1, P2) = true if P1 \C P2 .
-ceq totalcomply( P1, (P2,,Ps)) = true if complyrule1(P1 , closure(complysubset(P1, (P2,,Ps)))) == true .
-ceq totalcomply( P1, (P2,,Ps)) = true if complyrule1(P1, (P2 ,, Ps)) == true .
-eq totalcomply( P1, (P2,,Ps)) = false [owise] .
+***total compliance with policy set
+op complywithset : Policy NePolicyList -> Bool .
+ceq complywithset(P1, P2) = true if P1 \C P2 .
+ceq complywithset( P1, (P2,,Ps)) = true if complyrule1(P1 , closure(complysubset(P1, (P2,,Ps)))) == true .
+ceq complywithset( P1, (P2,,Ps)) = true if complyrule1(P1, (P2 ,, Ps)) == true .
+eq complywithset( P1, (P2,,Ps)) = false [owise] .
+***total compliance between two policy sets
+op totalCompl : NePolicyList NePolicyList -> Bool .
+eq totalCompl(P1, Ps1) = if complywithset( P1, Ps1) then true else false fi .
+eq totalCompl((P1,,P2), Ps1) = if complywithset( P1, Ps1) and complywithset( P2, Ps1) == true  then true else false fi .
+ceq totalCompl((P1,,P2,,Ps), Ps1) = true if complywithset( P1, Ps1) == true  /\  complywithset( P2, Ps1)== true  /\  complywithset( Ps, Ps1) == true  .
+eq totalCompl((P1,,P2,,Ps), Ps1) = false [owise] .
 
 endfm
 
 
-
-
+***This module declares example polcies to check the policy compliance.
 fmod TESTING is
   including FILTERTREE .
   including POLICY .
@@ -152,7 +157,5 @@ fmod TESTING is
   eq PL1 = (doctor wrt entityTr , (Use), spcltreatm wrt purposeTr ,100 , Europe wrt locationTr ) .
   eq PL2 = (doctor wrt entityTr , (Use & Store), spcltreatm wrt purposeTr ,100 , Europe wrt locationTr ) .
   eq PL3 = (others wrt entityTr , (Use & Store & Transfer), spcltreatm wrt purposeTr ,100 , Europe wrt locationTr ) .
-
-
 
 endfm
