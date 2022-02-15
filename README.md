@@ -11,7 +11,7 @@ To run and test the code, the rewriting tool [http://maude.cs.illinois.edu/][Mau
 
 
 ### Usage
-The formalization is an initial implementation of compliance checking and hierarchical structures. The proof of concept makes the checking of compliance executable.  The tree structures are specified in taxonomy.maude. The Compliance checking is specified in the file PolicyCompliance.maude. The actions are specified in action.maude.
+The formalization is an initial implementation of compliance checking and hierarchical structures. The proof of concept makes the checking of compliance executable.  The tree structures are specified in taxonomy.maude. The Compliance checking is specified in the file PolicyCompliance.maude.
 
 * Download Maude 3.1 and the files listed on /maude in the same directory. After installing Maude, to run the examples and test the compliance, use the following commands in your terminal:
 
@@ -31,7 +31,6 @@ Once the files are loaded to Maude, you can check the properties mentioned below
 ```
 red PE1 \C PE2 .
 red PE3 \C PE2 .
-
 ```
 * Example 2 : To check the compliance with  policy sets  i.e,
   #### Policy set 1 
