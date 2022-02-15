@@ -49,7 +49,7 @@ red complywithset(PL2, (PE4,,PE5,,PE6)) .
 ```
 * Example 2 : To check the compliance between two policy sets use the following instructions, i.e,
   
-  * Pl'={PL, PL1, PL2} and PE'= {PE4 ,PE4 ,PE4} 
+  * Pl'={PL, PL1, PL2} and PE'= {PE4 ,PE5 ,PE6} 
   
  ```
  red totalCompl((PL,,PL1,,PL2) , (PE4,,PE5,,PE6)) .
