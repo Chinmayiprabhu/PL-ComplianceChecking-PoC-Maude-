@@ -1,4 +1,4 @@
-## A Policy Language to Capture Compliance of Data Protection Requirements.
+## Maude : A Policy Language to Capture Compliance of Data Protection Requirements.
 
 
 ### Overview:
@@ -11,7 +11,7 @@ To run and test the code, the rewriting tool [http://maude.cs.illinois.edu/][Mau
 
 
 ### Usage
-The formalization is an initial implementation of compliance checking and hierarchical structures. The proof of concept makes the checking of compliance executable.  The tree structures are specified in taxonomy.maude. The Compliance checking is specified in the file PolicyCompliance.maude. The actions are specified in action.maude.
+The formalization is an initial implementation of compliance checking and hierarchical structures. The proof of concept makes the checking of compliance executable.  The tree structures are specified in taxonomy.maude. The Compliance checking is specified in the file PolicyCompliance.maude.
 
 * Download Maude 3.1 and the files listed on /maude in the same directory. After installing Maude, to run the examples and test the compliance, use the following commands in your terminal:
 
@@ -21,9 +21,9 @@ The formalization is an initial implementation of compliance checking and hierar
  ```
  
 
-Once the files are loaded to Maude, you can check the properties mentioned like . 
+Once the files are loaded to Maude, you can check the properties mentioned below. 
  
-* Example 1 : We check the compliance between two individual policies i.e, 
+* Example 1 : To check the compliance between two individual policies i.e, 
   - PE1 = (doctor , {Use, Store}, healthServ\marketing\admin, 21/02/2022, EU)
   - PE2 =(hospital\admin, {Use,Collect,Store}, treatm, 21/02/2024, EU)
   - PE3 = (doctor, {Use, Store, Transfer}, healthServ\marketing\billing, 21/02/2022, EU)
@@ -31,24 +31,29 @@ Once the files are loaded to Maude, you can check the properties mentioned like 
 ```
 red PE1 \C PE2 .
 red PE3 \C PE2 .
-
 ```
-* Example 2 : We check the compliance between two policy sets  i.e,
+* Example 2 : To check the compliance with  policy sets  i.e,
   #### Policy set 1 
   * PE4 =(doctor,{Use,Collect,Store},healthServ,21/02/2023,EU)
   * PE5 =(hospital\marketing,{Use,Transfer},healthServ,30/08/2023,EU)
   * PE6 =(healthAsso,{Use,Collect,Store},treatm,30/03/2023,EU))
   #### Policy set 2 
-  * PE′ = (hospital\admin,{Use},treatm,01/01/2023,EU) 
-  * PE′′ = (doctor,{Use},spclTreatm,01/01/2023,EU)
-  * PE′′′ = (doctor,{Use,Store},spclTreatm,01/01/2023,EU)
+  * PL = (hospital\admin,{Use},treatm,01/01/2023,EU) 
+  * PL1 = (doctor,{Use},spclTreatm,01/01/2023,EU)
+  * PL2 = (doctor,{Use,Store},spclTreatm,01/01/2023,EU)
 
 ```
-red totalcomply( PE` , (PE4,, PE5,, PE6)) .
-red totalcomply( PE`` , (PE4,, PE5,, PE6)) .
-red totalcomply( PE``` , (PE4,, PE5,, PE6)) .
+red complywithset(PL, (PE4,,PE5,,PE6)) .
+red complywithset(PL1, (PE4,,PE5,,PE6)) .
+red complywithset(PL2, (PE4,,PE5,,PE6)) .
 ```
-
+* Example 2 : To check the compliance between two policy sets use the following instructions, i.e,
+  
+  * Pl'={PL, PL1, PL2} and PE'= {PE4 ,PE5 ,PE6} 
+  
+ ```
+ red totalCompl((PL,,PL1,,PL2) , (PE4,,PE5,,PE6)) .
+ ```
 
 ### Remarks:
 
