@@ -146,7 +146,8 @@ fmod FILTERTREE is
 
 
   op _with_ : Elem Tree -> Set{Elem}.
-  eq el with t =   (el , leavesof(branch(el, t))).
+  ceq el with t = leavesof(branch(el, t)) if (not(leavesof(branch(el, t)) == empty )) .
+  ceq el with t = el if (leavesof(branch(el, t))) = empty .
 
   op _wrt_ : Elem Tree -> Set{Elem}.
   eq el wrt t =  branchelem(el, t).
@@ -221,9 +222,6 @@ fmod FILTERTREE is
   op leavesof : Tree -> Set{Elem} .
   eq leavesof (t) =  dif (originaltree(t) , Zerochildren(t)) .
 
-  ***(op leaves : Elem NeNodeList -> Set{Elem} .
-  eq  leaves (el , t ) =  dif ( ))
-
   *** overload the branch to work over sets of elements
   op branch : ElemSet Tree -> TreeSet .
   eq branch(empty , t) = empty .
@@ -242,20 +240,18 @@ fmod FILTERTREE is
 
 endfm
 
-
+***This module have the example entity, purpose, location hierrachy used for all the examples
 
 fmod TEST is
   including FILTERTREE .
   including ACCESS .
 
   ops Store Collect Transfer Use Delete : -> Elem .
-  ops Hlthcr Admin Hlthwrkr marketing Billing Doc HAss Phar Spcl GP Nur LabAss Gynac DT cleaner : -> Elem .
+
+  ops hospital admin healthProf doctor healthAsso billing marketing thirdparty others : -> Elem .
   ops a b c d e : -> Elem .
-  ops Hlthservs trt Gnrltrt Spcltrt Gchckup RoutineChk Dent Gynac Derm Othrs Dentr crown Rootcnl Pymnt Online offline : -> Elem .
-  ops Europe EastEu NorthEu CntrlEu SouthEu WestEu Belarus BulgariaCzechia Czechoslovakia Hungary Moldova Poland Romania
-RussianFederation Slovakia Ukraine UnionofSovietSocialistRepublics Denmark Estonia FaroeIslands Finland Iceland Ireland Latvia Lithuania
-Norway Sweden UnitedKingdom Albania Andorra BosniaHerzegovina Croatia Cyprus Gibraltar Greece HolySee Italy Malta Montenegro NorthMacedonia
-Portugal SanMarino Serbia SerbiaMontenegro Slovenia Spain Yugoslavia Austria Belgium France Germany Luxembourg Netherlands Switzerland Liechtenstein : -> Elem .
+  ops healthServ treatm admin marketing treatm gnrltreatm spcltreatm billing ITserv marketing research advertise : -> Elem .
+  ops Europe EastEu NorthEu CntrlEu SouthEu WestEu  : -> Elem .
 
   ops tr1 tr2 tr3 entityTr purposeTr locationTr : -> Tree .
 
@@ -263,49 +259,11 @@ Portugal SanMarino Serbia SerbiaMontenegro Slovenia Spain Yugoslavia Austria Bel
 
   eq tr1 = root(a) (a --> b) (a --> c) (c --> d) (c --> d) .
 
-  eq entityTr = root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) (Admin --> Billing)
-  (Hlthwrkr --> Doc) (Hlthwrkr --> Phar)(Hlthwrkr --> HAss) (Doc --> Spcl) ( Doc --> GP ) (HAss --> Nur)
-  (HAss --> LabAss) (Spcl --> Gynac) (Spcl --> DT) (GP --> cleaner) .
+  eq entityTr = root(hospital) (hospital --> admin)  (hospital --> healthProf) (healthProf --> doctor) (healthProf --> healthAsso)
+  (admin --> billing) (admin --> marketing)(marketing --> thirdparty) (marketing --> others) .
 
-  eq purposeTr = root(Hlthservs) (Hlthservs --> trt )(Hlthservs --> Pymnt )(trt --> Gnrltrt ) (trt --> Spcltrt )(Gnrltrt --> Gchckup )
-  (Gnrltrt --> RoutineChk) (Spcltrt --> Dent) (Spcltrt --> Gynac) (Spcltrt --> Derm ) (Spcltrt --> Othrs) (Dent --> Dentr)
-    (Dent --> crown) (Dent --> Rootcnl) (Pymnt --> Online) (Pymnt --> offline) .
+  eq purposeTr = root(healthServ) (healthServ --> treatm )(healthServ --> admin )(healthServ --> marketing ) (treatm --> gnrltreatm )(treatm --> spcltreatm )
+  (admin --> billing) (admin --> ITserv) (marketing --> research) (marketing --> advertise ) .
 
-  eq locationTr = root(Europe) (Europe --> EastEu)(Europe --> NorthEu) (Europe --> CntrlEu)(Europe --> SouthEu) (Europe --> WestEu )
-  (EastEu --> Belarus) (EastEu --> BulgariaCzechia) (EastEu --> Czechoslovakia)  (EastEu --> Hungary) (EastEu --> Moldova)
-  (EastEu --> Poland) (EastEu --> Romania) (EastEu --> RussianFederation) (EastEu -->  Slovakia)
-  (EastEu --> Ukraine) (EastEu --> UnionofSovietSocialistRepublics)  (NorthEu --> Denmark) (NorthEu --> Estonia) (NorthEu --> FaroeIslands) (NorthEu --> Finland)
-  (NorthEu --> Iceland ) (NorthEu --> Ireland) (NorthEu --> Latvia) (NorthEu --> Lithuania) (NorthEu --> Norway) (NorthEu --> Sweden) (NorthEu --> UnitedKingdom) (SouthEu --> Albania)
-  (SouthEu --> Andorra ) (SouthEu --> BosniaHerzegovina ) (SouthEu --> Croatia) (SouthEu --> Cyprus)
-  (SouthEu --> Gibraltar) (SouthEu --> Greece ) (SouthEu --> HolySee) (SouthEu --> Italy) (SouthEu --> Malta ) (SouthEu --> Montenegro ) (SouthEu --> NorthMacedonia ) (SouthEu --> Portugal )
-  (SouthEu --> SanMarino) (SouthEu --> Serbia) (SouthEu --> SerbiaMontenegro) (SouthEu --> Slovenia) (SouthEu --> Spain) (SouthEu --> Yugoslavia) (WestEu --> Austria)
-  (WestEu --> Belgium) (WestEu --> France) (WestEu --> Germany) (WestEu --> Luxembourg) (WestEu --> Netherlands) (WestEu --> Switzerland ) (WestEu --> Liechtenstein) .
-
+  eq locationTr = root(Europe) (Europe --> EastEu)(Europe --> NorthEu) (Europe --> CntrlEu)(Europe --> SouthEu) (Europe --> WestEu ) .
 endfm
-
-
-
-
-*** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin --> marketing) . ---> Tree
-*** red root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin -/-> marketing) . ---> BrTree
-*** red root(Hlthcr) (Hlthcr --> Admin)  (Doc -/-> Spcl) . ---> NeNodeList
-*** red (root(Hlthcr) (Hlthcr --> Admin)  (Hlthcr --> Hlthwrkr) (Admin -/-> marketing)) , (root(Hlthcr) (Hlthcr --> Admin)  (Doc -/-> Spcl)) . -->  [TreeSet,NeTreeSet,NeNodeList]
-*** red break ( (Doc, HAss) , tr ) .
-*** red existPath ( Admin , DT , tr ) . --> false
-*** red existPath(Hlthcr ,  LabAss , tr ) . --> True
-**** red  existPath(a,d,tr) .
-*** red branch ( Admin , tr ) .
-*** red branch ( (marketing,Doc)  , tr ) .-->NeSet{Tree}: root(marketing), root(Doc) Doc --> Spcl Doc --> GP Spcl --> Gynac Spcl --> DT
-*** red break ( Doc , tr ) .--> BrTree: root(Hlthcr) Hlthcr --> Admin Hlthcr --> Hlthwrkr Admin --> marketing Admin --> Billing Hlthwrkr -/->
-    *** Doc Hlthwrkr --> Phar Hlthwrkr --> HAss Doc --> Spcl Doc --> GP HAss --> Nur HAss --> LabAss Spcl --> Gynac Spcl
-    *** --> DT
-*** red break ( ( Admin , Spcl ) , tr ) . --> BrTree: root(Hlthcr) Hlthcr -/-> Admin Hlthcr --> Hlthwrkr Admin --> marketing Admin --> Billing Hlthwrkr -->
-    *** Doc Hlthwrkr --> Phar Hlthwrkr --> HAss Doc -/-> Spcl Doc --> GP HAss --> Nur HAss --> LabAss Spcl --> Gynac Spcl --> DT
-
-*** red ( (Hlthcr :\: Admin, Doc, HAss) with tr2 ) . --> result Elem: Phar
-**** red ( (Hlthcr :\: Doc, HAss) with tr2 ) . --> result NeSet{Elem}: marketing, Billing, Phar
-**** red ( (Hlthcr :\: Doc) with tr2 ) . --> result NeSet{Elem}: marketing, Billing, Phar, Nur, LabAss
-
-***  red leavesof (tr2) . --> result NeSet{Elem}: marketing, Billing, Phar, Nur, LabAss, Gynac, DT, cleaner
-
-*** red Spcl with tr . --> FamilyTree: < root(Spcl) Spcl --> Gynac Spcl --> DT : Spcl >

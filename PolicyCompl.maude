@@ -190,9 +190,9 @@ fmod TESTING is
   eq PE5 = ((hospital :\: marketing ) with entityTr ,( Use & Transfer) , healthServ with purposeTr , 300 , Europe with locationTr ) .
   eq PE6 = (healthAsso with entityTr , (Use & Store & Collect) , treatm with purposeTr , 300 , Europe with locationTr ) .
 
-  eq PL = ((hospital :\: admin ) with entityTr,(Use),  spcltreatm with purposeTr ,100 , Europe with locationTr ) .
+  eq PL = ((hospital :\: admin ) with entityTr,(Use),  treatm with purposeTr ,100 , Europe with locationTr ) .
   eq PL1 = (doctor with entityTr , (Use), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
-  eq PL2 = (doctor with entityTr , (Use & Store & Transfer ), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
+  eq PL2 = (doctor with entityTr , (Use & Store & Transfer), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
   eq PL3 = (others with entityTr , (Use & Store & Transfer), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
 
 endfm
