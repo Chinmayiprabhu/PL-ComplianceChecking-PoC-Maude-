@@ -192,7 +192,7 @@ fmod TESTING is
 
   eq PL = ((hospital :\: admin ) with entityTr,(Use),  spcltreatm with purposeTr ,100 , Europe with locationTr ) .
   eq PL1 = (doctor with entityTr , (Use), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
-  eq PL2 = (doctor with entityTr , (Use & Store), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
+  eq PL2 = (doctor with entityTr , (Use & Store & Transfer ), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
   eq PL3 = (others with entityTr , (Use & Store & Transfer), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
 
 endfm
