@@ -78,10 +78,16 @@ vars R1  R2 : Nat .
 
 op entityjoin : NePolicyList -> ElemSet .
 eq entityjoin(P1,,P2) = Join(entity(P1), entity(P2)) .
-eq entityjoin(P1,,P2,,Ps) = Join((Join(entity(P1), entity(P2))) , entity(Ps)) .
+eq entityjoin(P1,,(P2,,Ps)) = Join((Join(entity(P1), entity(P2))) , entity(Ps)) .
+
+op entitynew : Policy NePolicyList -> ElemSet .
+eq entitynew(P1,P2) = Join(entity(P1),entity(P2)) .
+eq entitynew(P1,(P2,,Ps)) = Join(entitynew(P1,P2),entity(Ps)) .
+
+
 op entityinter : NePolicyList -> ElemSet .
 eq entityinter(P1,,P2) = Inter(entity(P1), entity(P2)) .
-eq entityinter(P1,,P2,,Ps) = Inter((Inter(entity(P1), entity(P2))) , entity(Ps)) .
+eq entityinter(P1,,(P2,,Ps)) = Inter((Inter(entity(P1), entity(P2))) , entity(Ps)) .
 
 
 op actionjoin : NePolicyList -> ElemSet .
@@ -107,8 +113,8 @@ op locationinter : NePolicyList -> ElemSet .
 eq locationinter(P1,,P2) = Inter(Loc(P1), Loc(P2)) .
 eq locationinter(P1,,P2,,Ps) = Inter((Inter(Loc(P1), Loc(P2))) , Loc(Ps)) .
 
-op _subseq_ : Policy Policy -> Bool .
-eq P1 subseq P2 = P1 subset P2 .
+***(op _subseq_ : Policy Policy -> Bool .
+eq P1 subseq P2 = P1 subset P2 .)
 
 op _subse_ : Set{Elem} Set{Elem} -> Bool .
 eq els subse els1 = els subset els1 .
@@ -142,10 +148,6 @@ eq closure (P1,,P2,,Ps) =((entityjoin(P1,,P2,,Ps),actioninter(P1,,P2,,Ps),purpos
 (entityinter(P1,,P2,,Ps),actioninter(P1,,P2,,Ps),purposejoin(P1,,P2,,Ps), min((min(Ret(P1),Ret(P2))),Ret(Ps)),locationinter(P1,,P2,,Ps)),,
 (entityinter(P1,,P2,,Ps),actioninter(P1,,P2,,Ps),purposeinter(P1,,P2,,Ps), min((min(Ret(P1),Ret(P2))),Ret(Ps)),locationjoin(P1,,P2,,Ps))) .
 
-
-
-***eq closure(P1,,P2,,Ps) = closure((closure(P1,,P2)),,Ps) .
-***This function helps to chceking compliance rule between policy sets
 op complysubset : Policy NePolicyList -> NePolicyList .
 ceq complysubset( P1, P2) = P2  if ( not (Inter(entity(P1), entity(P2)) == empty)) .
 ceq complysubset( P1, (P2,,Ps)) =  (P2 ,, complysubset( P1, Ps)) if (complysubset( P1, P2) == P2) .
@@ -155,12 +157,12 @@ eq complysubset( P1, P2) = empty [owise] .
 ***function for compliance between two policy entries
 op complyrule1  : Policy NePolicyList -> Bool .
 eq complyrule1(P1, P2 ) =  if (P1 \C P2) then true else false fi .
-eq complyrule1(P1, (P2 ,, Ps)) = if (P1 \C P2) then true else complyrule1(P1 ,Ps ) fi .
+ceq complyrule1(P1, (P2 ,, Ps)) = true if (P1 \C P2) or complyrule1(P1 ,Ps ) .
 eq complyrule1(P1, Ps ) = false .
 ***total compliance with policy set
 op complywithset : Policy NePolicyList -> Bool .
 ceq complywithset(P1, P2) = true if P1 \C P2 .
-ceq complywithset( P1, (P2,,Ps)) = true if complyrule1(P1 , closure(complysubset(P1, (P2,,Ps)))) == true .
+ceq complywithset( P1, (P2,,Ps)) = true if complyrule1(P1 , closure(complysubset(P1, (P2,,Ps)))) .
 ceq complywithset( P1, (P2,,Ps)) = true if complyrule1(P1, (P2 ,, Ps)) == true .
 eq complywithset( P1, (P2,,Ps)) = false [owise] .
 ***total compliance between two policy sets
@@ -185,10 +187,10 @@ fmod TESTING is
   eq PE3 = ( doctor with entityTr , ( Use & Store & Transfer), (healthServ :\: marketing,billing) with purposeTr , 200  , Europe with locationTr) .
 
   eq PE4 = (doctor with entityTr , (Use & Store & Collect) , healthServ with purposeTr  , 200 ,Europe with locationTr ) .
-  eq PE5 = ((hospital :\: marketing ) with entityTr ,( Use & Store & Transfer) , healthServ with purposeTr , 300 , Europe with locationTr ) .
+  eq PE5 = ((hospital :\: marketing ) with entityTr ,( Use & Transfer) , healthServ with purposeTr , 300 , Europe with locationTr ) .
   eq PE6 = (healthAsso with entityTr , (Use & Store & Collect) , treatm with purposeTr , 300 , Europe with locationTr ) .
 
-  eq PL = ((hospital :\: admin ) with entityTr,(Use), treatm wrt purposeTr ,100 , Europe wrt locationTr ) .
+  eq PL = ((hospital :\: admin ) with entityTr,(Use),  spcltreatm with purposeTr ,100 , Europe with locationTr ) .
   eq PL1 = (doctor with entityTr , (Use), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
   eq PL2 = (doctor with entityTr , (Use & Store), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
   eq PL3 = (others with entityTr , (Use & Store & Transfer), spcltreatm with purposeTr ,100 , Europe with locationTr ) .
