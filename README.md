@@ -40,7 +40,7 @@ red PE3 \C PE2 .
   #### Policy set 2 
   * PL = (hospital\admin,{Use},treatm,01/01/2023,EU) 
   * PL1 = (doctor,{Use},spclTreatm,01/01/2023,EU)
-  * PL2 = (doctor,{Use,Store},spclTreatm,01/01/2023,EU)
+  * PL2 = (doctor,{Use,Store,Transfer},spclTreatm,01/01/2023,EU)
 
 ```
 red complywithset(PL, (PE4,,PE5,,PE6)) .
