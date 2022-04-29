@@ -38,83 +38,77 @@ fmod POLICY is
 endfm
 
 view Policy from TRIV to POLICY is
-    sort Elt to Policy .
+  sort Elt to Policy .
 endv
 
 fmod POLICYSET is
-    including POLICY .
-    including SET{Policy} .
-
-    sorts PolicySet NePolicySet .
-    subsort Set{Policy} < PolicySet .
-    subsort NeSet{Policy} < NePolicySet .
-
-
-endfm
-
-fmod POLICY-LIST is
   including POLICY .
+  including SET{Policy} .
 
-  sort NePolicyList .
-  subsort Policy < NePolicyList .
-  op singlepolicy : Policy -> NePolicyList [ctor] .
-  op [ _ , _ ] : NePolicyList Policy -> NePolicyList [ctor] .
+  sorts PolicySet NePolicySet .
+  subsort Policy < NePolicySet .
+  subsort Set{Policy} < PolicySet .
+  subsort NeSet{Policy} < NePolicySet .
+  op { _ , _ } : NePolicySet Policy -> NePolicySet [ctor] .
+
 
 endfm
+
+***(fmod POLICY-LIST is
+including POLICY .
+
+sort NePolicyList .
+subsort Policy < NePolicyList .
+op singlepolicy : Policy -> NePolicyList [ctor] .
+op [ _ , _ ] : NePolicyList Policy -> NePolicyList [ctor] .
+
+endfm)
 
 fmod COMPLIANCE is
 including POLICY .
 including ELEMSET .
 including POLICYSET .
-including POLICY-LIST .
 including SET{Elem} .
 including LIST{Policy} .
 including NAT .
 
 vars P1  P2  P3  P4 : Policy .
-var Ps Ps1 :  NePolicyList .
+var Ps Ps1 :  NePolicySet .
+***var PSet PSet1 : NePolicySet .
+vars el el1 el2 : Elem .
 vars els els1 : ElemSet .
 vars R1  R2 : Nat .
+op (_,,_) : NePolicySet  NePolicySet  -> NePolicySet [ctor assoc ] .
+op Entityjoin : NePolicySet -> NePolicySet .
 
-op entityjoin : NePolicyList -> ElemSet .
-eq entityjoin(P1,,P2) = Join(entity(P1), entity(P2)) .
-eq entityjoin(P1,,(P2,,Ps)) = Join((Join(entity(P1), entity(P2))) , entity(Ps)) .
-
-op entitynew : Policy NePolicyList -> ElemSet .
-eq entitynew(P1,P2) = Join(entity(P1),entity(P2)) .
-eq entitynew(P1,(P2,,Ps)) = Join(entitynew(P1,P2),entity(Ps)) .
+eq Entityjoin(P1,,P2) = ( Join(entity(P1), entity(P2)), Inter(Actions(P1), Actions(P2)), Inter(purpose(P1), purpose(P2)), min( Ret(P1),Ret(P2)),  Inter(Loc(P1), Loc(P2)) ) .
+eq Entityjoin(P1,,(P2,,Ps)) = ( Join((Join(entity(P1), entity(P2))) , entity(Ps)) , Inter((Inter(Actions(P1), Actions(P2))) , Actions(Ps)) , Inter((Inter(purpose(P1), purpose(P2))) , purpose(Ps)) , min((min(Ret(P1),Ret(P2))),Ret(Ps)) , Inter((Inter(Loc(P1), Loc(P2))) , Loc(Ps))) .
 
 
-op entityinter : NePolicyList -> ElemSet .
-eq entityinter(P1,,P2) = Inter(entity(P1), entity(P2)) .
-eq entityinter(P1,,(P2,,Ps)) = Inter((Inter(entity(P1), entity(P2))) , entity(Ps)) .
+op Actionjoin :  NePolicySet -> NePolicySet .
+
+eq Actionjoin(P1,,P2) = ( Inter(entity(P1), entity(P2)), Join(Actions(P1), Actions(P2)), Inter(purpose(P1), purpose(P2)), min( Ret(P1),Ret(P2)),  Inter(Loc(P1), Loc(P2)) )  .
+eq Actionjoin(P1,,(P2,,Ps)) = ( Inter((Inter(entity(P1), entity(P2))) , entity(Ps)) , Join((Join(Actions(P1), Actions(P2))) , Actions(Ps)) , Inter((Inter(purpose(P1), purpose(P2))) , purpose(Ps)) , min((min(Ret(P1),Ret(P2))),Ret(Ps)) , Inter((Inter(Loc(P1), Loc(P2))) , Loc(Ps))) .
 
 
-op actionjoin : NePolicyList -> ElemSet .
-eq actionjoin(P1,,P2) = Join(Actions(P1), Actions(P2)) .
-eq actionjoin(P1,,P2,,Ps) = Join((Join(Actions(P1), Actions(P2))) , Actions(Ps)) .
-op actioninter : NePolicyList -> ElemSet .
-eq actioninter(P1,,P2) = Inter(Actions(P1), Actions(P2)) .
-eq actioninter(P1,,P2,,Ps) = Inter((Inter(Actions(P1), Actions(P2))) , Actions(Ps)) .
+op Purposejoin : NePolicySet -> NePolicySet .
+
+eq Purposejoin(P1,,P2) = ( Inter(entity(P1), entity(P2)), Inter(Actions(P1), Actions(P2)), Join(purpose(P1), purpose(P2)), min( Ret(P1),Ret(P2)),  Inter(Loc(P1), Loc(P2)) )  .
+eq Purposejoin(P1,,(P2,,Ps)) = ( Inter((Inter(entity(P1), entity(P2))) , entity(Ps)) , Inter((Inter(Actions(P1), Actions(P2))) , Actions(Ps)) , Join((Join(purpose(P1), purpose(P2))) , purpose(Ps)) , min((min(Ret(P1),Ret(P2))),Ret(Ps)) , Inter((Inter(Loc(P1), Loc(P2))) , Loc(Ps)))  .
 
 
-op purposejoin : NePolicyList -> ElemSet .
-eq purposejoin(P1,,P2) = Join(purpose(P1), purpose(P2)) .
-eq purposejoin(P1,,P2,,Ps) = Join((Join(purpose(P1), purpose(P2))) , purpose(Ps)) .
-op purposeinter : NePolicyList -> ElemSet .
-eq purposeinter(P1,,P2) = Inter(purpose(P1), purpose(P2)) .
-eq purposeinter(P1,,P2,,Ps) = Inter((Inter(purpose(P1), purpose(P2))) , purpose(Ps)) .
+op Retjoin : NePolicySet -> NePolicySet .
+
+eq Retjoin(P1,,P2) = ( Inter(entity(P1), entity(P2)), Inter(Actions(P1), Actions(P2)), Inter(purpose(P1), purpose(P2)), max( Ret(P1),Ret(P2)),  Inter(Loc(P1), Loc(P2)) ) .
+eq Retjoin(P1,,(P2,,Ps)) = ( Inter((Inter(entity(P1), entity(P2))) , entity(Ps)) , Inter((Inter(Actions(P1), Actions(P2))) , Actions(Ps)) , Inter((Inter(purpose(P1), purpose(P2))) , purpose(Ps)) , max((max(Ret(P1),Ret(P2))),Ret(Ps)) , Inter((Inter(Loc(P1), Loc(P2))) , Loc(Ps))) .
 
 
-op locationjoin : NePolicyList -> ElemSet .
-eq locationjoin(P1,,P2) = Join(Loc(P1), Loc(P2)) .
-eq locationjoin(P1,,P2,,Ps) = Join((Join(Loc(P1), Loc(P2))) , Loc(Ps)) .
-op locationinter : NePolicyList -> ElemSet .
-eq locationinter(P1,,P2) = Inter(Loc(P1), Loc(P2)) .
-eq locationinter(P1,,P2,,Ps) = Inter((Inter(Loc(P1), Loc(P2))) , Loc(Ps)) .
+op Locationjoin : NePolicySet -> NePolicySet .
 
-***(op _subseq_ : Policy Policy -> Bool .
-eq P1 subseq P2 = P1 subset P2 .)
+eq Locationjoin(P1,,P2) = ( Inter(entity(P1), entity(P2)), Inter(Actions(P1), Actions(P2)), Inter(purpose(P1), purpose(P2)), min( Ret(P1), Ret(P2)),  Join(Loc(P1), Loc(P2)) ) .
+eq Locationjoin(P1,,(P2,,Ps)) = ( Inter((Inter(entity(P1), entity(P2))) , entity(Ps)) , Inter((Inter(Actions(P1), Actions(P2))) , Actions(Ps)) , Inter((Inter(purpose(P1), purpose(P2))) , purpose(Ps)) , min((min(Ret(P1),Ret(P2))),Ret(Ps)) , Join((Join(Loc(P1), Loc(P2))) , Loc(Ps))) .
+
+
 
 op _subse_ : Set{Elem} Set{Elem} -> Bool .
 eq els subse els1 = els subset els1 .
@@ -128,45 +122,44 @@ eq Inter (els, els1 ) = intersection (els , els1) .
 op Join : Set{Elem} Set{Elem} -> Set{Elem} .
 eq Join ( els , els1) = union(els, els1) .
 
-op mini : Nat Nat -> Nat .
-ceq mini( R1, R2) = R1 if (R1 < R2) .
-ceq mini( R1, R2) = R2 if (R2 < R1) .
+
 
 op _\C_ : Policy Policy -> Bool .
 ceq P1 \C P2 = true if entity(P1) subse entity(P2) /\ Actions(P1) subse Actions(P2) /\  purpose(P1) subse purpose(P2) /\ Ret(P1) <= Ret(P2) /\ Loc(P1) subse Loc (P2) .
 eq P1 \C P2 = false [owise] .
 
-op (_,,_) : NePolicyList  NePolicyList  -> NePolicyList [ctor assoc ] .
 
-op closure : NePolicyList -> NePolicyList .
-eq closure (P1,,P2) =((entityjoin(P1,,P2),actioninter(P1,,P2),purposeinter(P1,,P2), min( Ret(P1),Ret(P2)),locationinter(P1,,P2)),,
-(entityinter(P1,,P2),actionjoin(P1,,P2),purposeinter(P1,,P2), min( Ret(P1),Ret(P2)),locationinter(P1,,P2)),,
-(entityinter(P1,,P2),actioninter(P1,,P2),purposejoin(P1,,P2), min( Ret(P1),Ret(P2)),locationinter(P1,,P2)),,
-(entityinter(P1,,P2),actioninter(P1,,P2),purposeinter(P1,,P2), min( Ret(P1),Ret(P2)),locationjoin(P1,,P2))) .
-eq closure (P1,,P2,,Ps) =((entityjoin(P1,,P2,,Ps),actioninter(P1,,P2,,Ps),purposeinter(P1,,P2,,Ps), min((min(Ret(P1),Ret(P2))),Ret(Ps)),locationinter(P1,,P2,,Ps)),,
-(entityinter(P1,,P2,,Ps),actionjoin(P1,,P2,,Ps),purposeinter(P1,,P2,,Ps), min((min(Ret(P1),Ret(P2))),Ret(Ps)),locationinter(P1,,P2,,Ps)),,
-(entityinter(P1,,P2,,Ps),actioninter(P1,,P2,,Ps),purposejoin(P1,,P2,,Ps), min((min(Ret(P1),Ret(P2))),Ret(Ps)),locationinter(P1,,P2,,Ps)),,
-(entityinter(P1,,P2,,Ps),actioninter(P1,,P2,,Ps),purposeinter(P1,,P2,,Ps), min((min(Ret(P1),Ret(P2))),Ret(Ps)),locationjoin(P1,,P2,,Ps))) .
+op subsq : Set{Elem} -> Nat .
+eq subsq (els) = | els | .
 
-op complysubset : Policy NePolicyList -> NePolicyList .
+
+op combine : NePolicySet -> NePolicySet .
+eq combine (P1,,P2) = ( Entityjoin(P1,,P2) , Actionjoin(P1,,P2) , Purposejoin(P1,,P2), Retjoin(P1,,P2), Locationjoin(P1,,P2)) .
+eq combine (P1,, P2,, Ps) = ( Entityjoin(P1,,P2,,Ps) , Actionjoin(P1,,P2,,Ps) , Purposejoin(P1,,P2,,Ps), Retjoin(P1,,P2,,Ps), Locationjoin(P1,,P2,,Ps)) .
+
+op closure : NePolicySet  -> NePolicySet .
+eq closure ( P1,, P2,, Ps ) = union( (P1,, P2,, Ps) , combine(P1,, P2,, Ps)) .
+
+
+op complysubset : Policy NePolicySet -> NePolicySet .
 ceq complysubset( P1, P2) = P2  if ( not (Inter(entity(P1), entity(P2)) == empty)) .
 ceq complysubset( P1, (P2,,Ps)) =  (P2 ,, complysubset( P1, Ps)) if (complysubset( P1, P2) == P2) .
 eq complysubset( P1, (P2,,Ps)) = complysubset( P1, Ps) .
 eq complysubset( P1, P2) = empty [owise] .
 
 ***function for compliance between two policy entries
-op complyrule1  : Policy NePolicyList -> Bool .
+op complyrule1  : Policy NePolicySet -> Bool .
 eq complyrule1(P1, P2 ) =  if (P1 \C P2) then true else false fi .
 ceq complyrule1(P1, (P2 ,, Ps)) = true if (P1 \C P2) or complyrule1(P1 ,Ps ) .
 eq complyrule1(P1, Ps ) = false .
 ***total compliance with policy set
-op complywithset : Policy NePolicyList -> Bool .
+op complywithset : Policy NePolicySet -> Bool .
 ceq complywithset(P1, P2) = true if P1 \C P2 .
 ceq complywithset( P1, (P2,,Ps)) = true if complyrule1(P1 , closure(complysubset(P1, (P2,,Ps)))) .
 ceq complywithset( P1, (P2,,Ps)) = true if complyrule1(P1, (P2 ,, Ps)) == true .
 eq complywithset( P1, (P2,,Ps)) = false [owise] .
 ***total compliance between two policy sets
-op totalCompl : NePolicyList NePolicyList -> Bool .
+op totalCompl : NePolicySet NePolicySet -> Bool .
 eq totalCompl(P1, Ps1) = if complywithset( P1, Ps1) then true else false fi .
 eq totalCompl((P1,,P2), Ps1) = if complywithset( P1, Ps1) and complywithset( P2, Ps1) == true  then true else false fi .
 ceq totalCompl((P1,,P2,,Ps), Ps1) = true if complywithset( P1, Ps1) == true  /\  complywithset( P2, Ps1)== true  /\  complywithset( Ps, Ps1) == true  .
