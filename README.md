@@ -52,7 +52,7 @@ red complywithset(PL2, (PE4,,PE5,,PE6)) .
   * Pl'={PL, PL1, PL2} and PE'= {PE4 ,PE5 ,PE6} 
   
  ```
- red totalCompl((PL,,PL1,,PL2) , (PE4,,PE5,,PE6)) .
+ red totalCompl((PL,,PL1) , (PE4,,PE5,,PE6)) .
  ```
 
 ### Remarks:
